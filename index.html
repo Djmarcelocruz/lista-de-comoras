@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#1e293b">
     <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22Lista%20Familiar%22,%22short_name%22:%22Lista%22,%22start_url%22:%22.%22,%22display%22:%22standalone%22,%22background_color%22:%22%231e293b%22,%22theme_color%22:%22%231e293b%22}">
-    <title>Lista Familiar Pro</title>
+    <title>Lista Familiar Regional</title>
     <style>
         :root { --limpeza: #3498db; --comida: #2ecc71; --carnes: #e74c3c; --outros: #95a5a6; --dark: #1e293b; }
         body { font-family: -apple-system, system-ui, sans-serif; background: #f0f2f5; margin: 0; padding: 10px; padding-bottom: 240px; -webkit-tap-highlight-color: transparent; }
@@ -15,9 +15,9 @@
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .btn-limpar { color: #e74c3c; background: none; border: none; font-weight: bold; padding: 10px; cursor: pointer; }
         .card-add { background: white; padding: 15px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-bottom: 20px; }
-        .input-group { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+        .input-group { display: flex; gap: 8px; margin-bottom: 8px; }
         input, select { width: 100%; padding: 14px; border: 1px solid #ddd; border-radius: 12px; font-size: 16px; box-sizing: border-box; outline: none; }
-        .btn-lupa-topo { background: #f1f5f9; border: none; padding: 14px; border-radius: 12px; font-size: 1.2rem; cursor: pointer; min-width: 55px; }
+        .btn-lupa-topo { background: #f1f5f9; border: none; padding: 14px; border-radius: 12px; font-size: 1.2rem; cursor: pointer; min-width: 55px; display: flex; align-items: center; justify-content: center; }
         .btn-add { background: var(--dark); color: white; width: 100%; padding: 16px; border: none; border-radius: 12px; font-weight: bold; font-size: 1rem; cursor: pointer; }
         .bloco-setor { background: white; border-radius: 15px; margin-top: 15px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .titulo-setor { padding: 12px; color: white; font-weight: bold; font-size: 0.85rem; }
@@ -30,11 +30,8 @@
         #modal-preco { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
         .modal-content { background: white; padding: 25px; border-radius: 25px; width: 85%; max-width: 320px; text-align: center; }
         .input-preco-final { font-size: 28px; text-align: center; border: 2px solid var(--comida); border-radius: 15px; width: 100%; color: var(--comida); font-weight: bold; margin: 15px 0; }
-        .secao-concluidos { margin-top: 30px; border-top: 2px dashed #cbd5e1; padding-top: 15px; }
-        .preco-tag { background: #2ecc71; color: white; padding: 3px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; }
         .footer { position: fixed; bottom: 0; left: 0; right: 0; background: var(--dark); color: white; padding: 20px; border-radius: 25px 25px 0 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.2); z-index: 999; }
         .total-container { display: flex; justify-content: space-around; margin-bottom: 15px; text-align: center; }
-        .valor-destaque { font-size: 1.2rem; font-weight: bold; display: block; }
         .btn-whatsapp { background: #25d366; color: white; width: 100%; border: none; padding: 16px; border-radius: 15px; font-weight: bold; font-size: 1rem; cursor: pointer; }
         #toast { visibility: hidden; min-width: 200px; background-color: #334155; color: #fff; text-align: center; border-radius: 50px; padding: 12px; position: fixed; z-index: 3000; left: 50%; bottom: 230px; transform: translateX(-50%); }
         #toast.show { visibility: visible; animation: fadeInOut 2.5s; }
@@ -54,7 +51,7 @@
     <div class="card-add">
         <div class="input-group">
             <input type="text" id="nomeProd" placeholder="O que falta?" oninput="classificarAuto()">
-            <button class="btn-lupa-topo" onclick="pesquisarPreco()" title="Pesquisar preço">🔍</button>
+            <button class="btn-lupa-topo" onclick="pesquisarRegional()" title="Preço Regional">📍🔍</button>
         </div>
         <div style="display: flex; gap: 10px; margin-bottom: 8px;">
             <select id="catProd">
@@ -69,19 +66,16 @@
     </div>
 
     <div id="lista-pendente"></div>
-
-    <div class="secao-concluidos" id="area-concluidos" style="display:none;">
-        <h4 style="color: #64748b; margin-left: 10px;">✅ Carrinho</h4>
-        <div id="lista-concluida"></div>
-    </div>
+    <div class="secao-concluidos" id="area-concluidos" style="display:none;"><h4 style="color: #64748b; margin-left: 10px;">✅ Carrinho</h4><div id="lista-concluida"></div></div>
 
     <div class="footer">
         <div class="total-container">
-            <div>Total<br><span class="valor-destaque" style="color:#2ecc71">R$ <span id="valor-total">0,00</span></span></div>
-            <div>Por Pessoa<br><span class="valor-destaque" style="color:#3498db">R$ <span id="valor-pessoa">0,00</span></span></div>
+            <div>Total<br><span style="color:#2ecc71; font-weight:bold;">R$ <span id="valor-total">0,00</span></span></div>
+            <div>Por Pessoa<br><span style="color:#3498db; font-weight:bold;">R$ <span id="valor-pessoa">0,00</span></span></div>
         </div>
-        <div style="margin-bottom: 12px; font-size: 0.9rem; text-align:center">
-            Dividir por: <input type="number" id="numPessoas" value="2" oninput="renderizar()" style="width: 45px; padding: 5px; border-radius: 8px; border: none; text-align: center; font-weight: bold;"> pessoas
+        <div style="margin-bottom: 12px; text-align:center; font-size: 0.9rem;">
+            Dividir por: <input type="number" id="numPessoas" value="2" oninput="renderizar()" style="width: 45px; border:none; text-align:center; font-weight:bold; border-radius:5px;"> pessoas
+            <br><small style="opacity:0.7">📍 Busca Regional Ativa</small>
         </div>
         <button class="btn-whatsapp" onclick="compartilharZap()">SINCRONIZAR NO WHATSAPP</button>
     </div>
@@ -89,12 +83,12 @@
 
 <div id="modal-preco">
     <div class="modal-content">
-        <h3 id="nome-item-modal" style="margin-top:0">Produto</h3>
+        <h3 id="nome-item-modal">Produto</h3>
         <p id="label-memoria" style="font-size: 0.8rem; color: #64748b;"></p>
         <input type="text" id="inputPrecoFinal" inputmode="decimal" placeholder="0,00" class="input-preco-final">
         <div style="display: flex; gap: 12px;">
-            <button onclick="fecharModal()" style="flex:1; background:#f1f5f9; border:none; padding:15px; border-radius:12px; font-weight:bold;">Sair</button>
-            <button onclick="confirmarPreco()" style="flex:1; background:var(--comida); color:white; border:none; padding:15px; border-radius:12px; font-weight:bold;">OK</button>
+            <button onclick="fecharModal()" style="flex:1; background:#f1f5f9; border:none; padding:15px; border-radius:12px;">Sair</button>
+            <button onclick="confirmarPreco()" style="flex:1; background:var(--comida); color:white; border:none; padding:15px; border-radius:12px;">OK</button>
         </div>
     </div>
 </div>
@@ -112,12 +106,19 @@
         else if (/carne|frango|bife|picanha|linguica|salsicha|presunto|mussarela|frios/.test(t)) s.value = "carnes";
     }
 
-    function pesquisarPreco() {
+    async function pesquisarRegional() {
         const nome = document.getElementById('nomeProd').value;
-        if(nome) {
-            window.open(`https://www.google.com/search?tbm=shop&q=${encodeURIComponent(nome)}`, '_blank');
-        } else {
-            alert("Digite o nome do produto primeiro!");
+        if(!nome) return alert("Digite o produto!");
+        
+        // Tenta pegar a localização, mas não trava se não conseguir
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition((pos) => {
+                // Com a localização exata, a busca fica ainda melhor
+                window.open(`https://www.google.com/search?tbm=shop&q=${encodeURIComponent(nome)}+perto+de+mim`, '_blank');
+            }, () => {
+                // Se o GPS estiver desligado, ele abre a pesquisa geral que já ajuda muito
+                window.open(`https://www.google.com/search?tbm=shop&q=${encodeURIComponent(nome)}`, '_blank');
+            });
         }
     }
 
@@ -136,13 +137,8 @@
         document.getElementById('nome-item-modal').innerText = item.nome;
         const ultimo = memoriaPrecos[item.nome.toLowerCase().trim()];
         const label = document.getElementById('label-memoria');
-        if(ultimo) {
-            label.innerText = `Último preço: R$ ${ultimo.toFixed(2)}`;
-            document.getElementById('inputPrecoFinal').value = ultimo.toFixed(2).replace('.',',');
-        } else {
-            label.innerText = "Qual o valor unitário?";
-            document.getElementById('inputPrecoFinal').value = '';
-        }
+        label.innerText = ultimo ? `Último preço: R$ ${ultimo.toFixed(2)}` : "Qual o valor unitário?";
+        document.getElementById('inputPrecoFinal').value = ultimo ? ultimo.toFixed(2).replace('.',',') : '';
         document.getElementById('modal-preco').style.display = 'flex';
         setTimeout(() => document.getElementById('inputPrecoFinal').focus(), 300);
     }
@@ -154,10 +150,8 @@
         const vN = parseFloat(vT.replace(',','.')) || 0;
         if(itemEmEdicao) {
             const item = itens.find(i => i.id === itemEmEdicao);
-            if(vN > 0) {
-                memoriaPrecos[item.nome.toLowerCase().trim()] = vN;
-                localStorage.setItem('memoria_precos', JSON.stringify(memoriaPrecos));
-            }
+            if(vN > 0) memoriaPrecos[item.nome.toLowerCase().trim()] = vN;
+            localStorage.setItem('memoria_precos', JSON.stringify(memoriaPrecos));
             itens = itens.map(i => i.id === itemEmEdicao ? {...i, comprado: true, preco: vN} : i);
             salvar(); fecharModal();
         }
@@ -186,12 +180,7 @@
             if(filt.length > 0) {
                 let h = `<div class="bloco-setor"><div class="titulo-setor ${c.cl}"><span>${c.n}</span></div>`;
                 filt.forEach(item => {
-                    h += `<div class="item-linha">
-                        <span class="nome-item">${item.nome}</span>
-                        <input type="number" class="input-qtd-lista" value="${item.qtd}" oninput="atualizarQtd(${item.id}, this.value)">
-                        <button class="btn-check" onclick="abrirModal(${item.id})">✅</button>
-                        <button class="btn-del" onclick="excluir(${item.id})">🗑️</button>
-                    </div>`;
+                    h += `<div class="item-linha"><span class="nome-item">${item.nome}</span><input type="number" class="input-qtd-lista" value="${item.qtd}" oninput="atualizarQtd(${item.id}, this.value)"><button class="btn-check" onclick="abrirModal(${item.id})">✅</button><button class="btn-del" onclick="excluir(${item.id})">🗑️</button></div>`;
                 });
                 pBox.innerHTML += h + `</div>`;
             }
@@ -214,7 +203,7 @@
     function compartilharZap() {
         const d = btoa(unescape(encodeURIComponent(JSON.stringify(itens))));
         const url = window.location.origin + window.location.pathname + "?d=" + d;
-        window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent("*🛒 NOSSA LISTA ATUALIZADA:* \n" + url));
+        window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent("*🛒 LISTA ATUALIZADA:* \n" + url));
     }
 
     function limparTudo() { if(confirm("Limpar lista?")) { itens = []; salvar(); } }
