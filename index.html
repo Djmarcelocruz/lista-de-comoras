@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lista Familiar - Sincronizada</title>
+    <style>
+        :root { --limpeza: #3498db; --comida: #2ecc71; --carnes: #e74c3c; --outros: #95a5a6; --dark: #1e293b; }
+        body { font-family: sans-serif; background: #f0f2f5; margin: 0; padding: 10px; padding-bottom: 220px; }
+        .container { max-width: 500px; margin: auto; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .btn-limpar { color: #e74c3c; background: none; border: none; font-weight: bold; cursor: pointer; }
+        .card-add { background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-bottom: 20px; }
+        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
+        .btn-add { background: var(--dark); color: white; width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        .bloco-setor { background: white; border-radius: 12px; margin-top: 15px; overflow: hidden; border: 1px solid #eee; }
+        .titulo-setor { padding: 10px; color: white; font-weight: bold; font-size: 0.8rem; display: flex; justify-content: space-between; }
+        .bg-comida { background: var(--comida); } .bg-limpeza { background: var(--limpeza); } .bg-carnes { background: var(--carnes); } .bg-outros { background: var(--outros); }
+        .item-linha { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid #f5f5f5; gap: 8px; }
+        .nome-item { flex: 1; font-weight: 500; font-size: 1rem; }
+        .input-qtd-lista { width: 50px; padding: 8px; border: 1px solid #ddd; border-radius: 8px; text-align: center; font-weight: bold; }
+        .btn-check { background: #2ecc71; color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .btn-del { background: #fee2e2; color: #dc2626; border: none; padding: 10px; border-radius: 8px; cursor: pointer; }
+        #modal-preco { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 20px; border-radius: 15px; width: 80%; max-width: 300px; text-align: center; }
+        .input-preco-final { font-size: 24px; text-align: center; border: 2px solid var(--comida); border-radius: 10px; width: 100%; color: var(--comida); font-weight: bold; }
+        .secao-concluidos { margin-top: 30px; border-top: 2px dashed #ccc; padding-top: 10px; }
+        .item-comprado { background: #f8fafc; color: #94a3b8; }
+        .preco-tag { background: #2ecc71; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
+        .footer { position: fixed; bottom: 0; left: 0; right: 0; background: var(--dark); color: white; padding: 15px; text-align: center; z-index: 999; }
+        .total-container { display: flex; justify-content: space-around; margin-bottom: 10px; }
+        .btn-whatsapp { background: #25d366; color: white; width: 100%; border: none; padding: 14px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-top">
+        <h2 style="margin:0;">🛒 Compra em Dupla</h2>
+        <button class="btn-limpar" onclick="limparTudo()">Limpar Tudo</button>
+    </div>
+
+    <div class="card-add">
+        <input type="text" id="nomeProd" placeholder="O que falta?" oninput="classificarAuto()">
+        <div style="display: flex; gap: 10px;">
+            <select id="catProd">
+                <option value="comida">🍏 Comida</option>
+                <option value="limpeza">🧹 Limpeza</option>
+                <option value="carnes">🥩 Carnes</option>
+                <option value="outros">📦 Outros</option>
+            </select>
+            <input type="number" id="qtdProd" value="1" style="width: 80px;">
+        </div>
+        <button class="btn-add" onclick="adicionar()">ADICIONAR</button>
+    </div>
+
+    <div id="lista-pendente"></div>
+
+    <div class="secao-concluidos" id="area-concluidos" style="display:none;">
+        <h4 style="color: #64748b; margin-bottom: 10px;">✅ No Carrinho (Conferência)</h4>
+        <div id="lista-concluida"></div>
+    </div>
+
+    <div class="footer">
+        <div class="total-container">
+            <div>Total: <b style="color:#2ecc71">R$ <span id="valor-total">0,00</span></b></div>
+            <div>Por Pessoa: <b style="color:#3498db">R$ <span id="valor-pessoa">0,00</span></b></div>
+        </div>
+        <div style="margin-bottom: 8px;">
+            Dividir por: <input type="number" id="numPessoas" value="2" oninput="renderizar()" style="width: 40px; text-align: center; border: none; border-radius: 5px; font-weight: bold;">
+        </div>
+        <button class="btn-whatsapp" onclick="compartilharZap()">🔗 SINCRONIZAR LISTAS (ZAP)</button>
+    </div>
+</div>
+
+<div id="modal-preco">
+    <div class="modal-content">
+        <h3 id="nome-item-modal">Produto</h3>
+        <p>Valor Unitário:</p>
+        <input type="text" id="inputPrecoFinal" inputmode="decimal" placeholder="0,00" class="input-preco-final">
+        <div style="display: flex; gap: 10px; margin-top: 15px;">
+            <button onclick="fecharModal()" style="flex:1; background:#eee; border:none; padding:12px; border-radius:10px;">Sair</button>
+            <button onclick="confirmarPreco()" style="flex:1; background:var(--comida); color:white; border:none; padding:12px; border-radius:10px; font-weight:bold;">OK</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let itens = JSON.parse(localStorage.getItem('lista_dupla_v1')) || [];
+    let itemEmEdicao = null;
+
+    function classificarAuto() {
+        const t = document.getElementById('nomeProd').value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const s = document.getElementById('catProd');
+        if (/danone|leite|pao|queijo|arroz|feijao|ovo|cafe|biscoito|iogurte|manteiga|fruta/.test(t)) s.value = "comida";
+        else if (/sabao|detergente|amaciante|papel|veja|cloro|shampoo|sabonete|pasta|limpeza/.test(t)) s.value = "limpeza";
+        else if (/carne|frango|bife|picanha|linguica|salsicha|presunto|mussarela|frios/.test(t)) s.value = "carnes";
+    }
+
+    function adicionar() {
+        const n = document.getElementById('nomeProd');
+        const c = document.getElementById('catProd');
+        const q = document.getElementById('qtdProd');
+        if(!n.value) return;
+        itens.push({ id: Date.now(), nome: n.value, cat: c.value, qtd: parseInt(q.value) || 1, preco: 0, comprado: false });
+        n.value = ''; q.value = '1'; salvar();
+    }
+
+    function abrirModal(id) {
+        itemEmEdicao = id;
+        const item = itens.find(i => i.id === id);
+        document.getElementById('nome-item-modal').innerText = item.nome;
+        document.getElementById('inputPrecoFinal').value = '';
+        document.getElementById('modal-preco').style.display = 'flex';
+        setTimeout(() => document.getElementById('inputPrecoFinal').focus(), 200);
+    }
+
+    function fecharModal() { document.getElementById('modal-preco').style.display = 'none'; itemEmEdicao = null; }
+
+    function confirmarPreco() {
+        const valor = document.getElementById('inputPrecoFinal').value;
+        if(itemEmEdicao) {
+            itens = itens.map(i => i.id === itemEmEdicao ? {...i, comprado: true, preco: parseFloat(valor.replace(',','.')) || 0} : i);
+            salvar(); fecharModal();
+        }
+    }
+
+    function atualizarQtd(id, q) {
+        itens = itens.map(i => i.id === id ? {...i, qtd: parseInt(q) || 1} : i);
+        localStorage.setItem('lista_dupla_v1', JSON.stringify(itens));
+        renderizar();
+    }
+
+    function reverter(id) { itens = itens.map(i => i.id === id ? {...i, comprado: false} : i); salvar(); }
+    function excluir(id) { if(confirm("Excluir?")) { itens = itens.filter(i => i.id !== id); salvar(); } }
+    function salvar() { localStorage.setItem('lista_dupla_v1', JSON.stringify(itens)); renderizar(); }
+
+    function renderizar() {
+        const pBox = document.getElementById('lista-pendente');
+        const cBox = document.getElementById('lista-concluida');
+        const areaC = document.getElementById('area-concluidos');
+        pBox.innerHTML = ''; cBox.innerHTML = '';
+        let soma = 0;
+
+        const cats = [{id:'comida', n:'🍏 COMIDA', cl:'bg-comida'}, {id:'limpeza', n:'🧹 LIMPEZA', cl:'bg-limpeza'}, {id:'carnes', n:'🥩 CARNES', cl:'bg-carnes'}, {id:'outros', n:'📦 OUTROS', cl:'bg-outros'}];
+
+        cats.forEach(c => {
+            const filt = itens.filter(i => i.cat === c.id && !i.comprado);
+            if(filt.length > 0) {
+                let html = `<div class="bloco-setor"><div class="titulo-setor ${c.cl}"><span>${c.n}</span></div>`;
+                filt.forEach(item => {
+                    html += `<div class="item-linha">
+                        <span class="nome-item">${item.nome}</span>
+                        <input type="number" class="input-qtd-lista" value="${item.qtd}" oninput="atualizarQtd(${item.id}, this.value)">
+                        <button class="btn-check" onclick="abrirModal(${item.id})">✅</button>
+                        <button class="btn-del" onclick="excluir(${item.id})">🗑️</button>
+                    </div>`;
+                });
+                pBox.innerHTML += html + `</div>`;
+            }
+        });
+
+        const comprados = itens.filter(i => i.comprado);
+        if(comprados.length > 0) {
+            areaC.style.display = 'block';
+            comprados.forEach(item => {
+                soma += (item.preco * item.qtd);
+                cBox.innerHTML += `<div class="item-linha item-comprado">
+                    <span class="nome-item">${item.qtd}x ${item.nome} <span class="preco-tag">R$ ${item.preco.toFixed(2)}</span></span>
+                    <button class="btn-del" style="background:#f1f5f9; color:#64748b" onclick="reverter(${item.id})">🔄</button>
+                </div>`;
+            });
+        } else { areaC.style.display = 'none'; }
+
+        document.getElementById('valor-total').innerText = soma.toFixed(2).replace('.',',');
+        const nP = document.getElementById('numPessoas').value || 1;
+        document.getElementById('valor-pessoa').innerText = (soma / nP).toFixed(2).replace('.',',');
+    }
+
+    function compartilharZap() {
+        // Agora o link leva TUDO (Comprados, Pendentes e Preços)
+        const txt = JSON.stringify(itens);
+        const url = window.location.origin + window.location.pathname + "?data=" + btoa(unescape(encodeURIComponent(txt)));
+        window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent("*🛒 NOSSA LISTA ATUALIZADA:* \n" + url));
+    }
+
+    function limparTudo() { if(confirm("Limpar lista?")) { itens = []; salvar(); } }
+
+    window.onload = () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const data = urlParams.get('data');
+        if(data) {
+            try {
+                const importados = JSON.parse(decodeURIComponent(escape(atob(data))));
+                // Mesclar listas: evita duplicados se clicar no link várias vezes
+                const idsExistentes = new Set(itens.map(i => i.id));
+                importados.forEach(imp => {
+                    if(!idsExistentes.has(imp.id)) { itens.push(imp); } 
+                    else { // Se já existe, atualiza o status de compra e preço
+                        itens = itens.map(i => i.id === imp.id ? imp : i);
+                    }
+                });
+                salvar();
+                window.history.replaceState({}, '', window.location.pathname);
+            } catch(e) { console.error("Erro na sincronização"); }
+        }
+        renderizar();
+    }
+</script>
+</body>
+</html>
