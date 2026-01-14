@@ -3,44 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#1e293b">
-    
     <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22Lista%20Familiar%22,%22short_name%22:%22Lista%22,%22start_url%22:%22.%22,%22display%22:%22standalone%22,%22background_color%22:%22%231e293b%22,%22theme_color%22:%22%231e293b%22}">
-
-    <title>Lista Familiar Pro</title>
+    <title>Lista Familiar Final</title>
     <style>
         :root { --limpeza: #3498db; --comida: #2ecc71; --carnes: #e74c3c; --outros: #95a5a6; --dark: #1e293b; }
-        body { font-family: -apple-system, system-ui, sans-serif; background: #f0f2f5; margin: 0; padding: 10px; padding-bottom: 220px; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: #f0f2f5; margin: 0; padding: 10px; padding-bottom: 240px; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
         .container { max-width: 500px; margin: auto; }
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .btn-limpar { color: #e74c3c; background: none; border: none; font-weight: bold; padding: 10px; cursor: pointer; }
+        .btn-limpar { color: #e74c3c; background: none; border: none; font-weight: bold; padding: 12px; cursor: pointer; font-size: 0.9rem; }
         .card-add { background: white; padding: 15px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-bottom: 20px; }
-        input, select { width: 100%; padding: 14px; margin: 8px 0; border: 1px solid #ddd; border-radius: 12px; font-size: 16px; box-sizing: border-box; outline: none; }
-        .btn-add { background: var(--dark); color: white; width: 100%; padding: 16px; border: none; border-radius: 12px; font-weight: bold; font-size: 1rem; cursor: pointer; }
+        input, select { width: 100%; padding: 15px; margin: 8px 0; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 16px; box-sizing: border-box; outline: none; }
+        .btn-add { background: var(--dark); color: white; width: 100%; padding: 18px; border: none; border-radius: 12px; font-weight: bold; font-size: 1rem; cursor: pointer; transition: 0.2s; }
+        .btn-add:active { transform: scale(0.98); opacity: 0.9; }
         .bloco-setor { background: white; border-radius: 15px; margin-top: 15px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .titulo-setor { padding: 12px; color: white; font-weight: bold; font-size: 0.85rem; display: flex; justify-content: space-between; }
+        .titulo-setor { padding: 12px; color: white; font-weight: bold; font-size: 0.85rem; letter-spacing: 1px; }
         .bg-comida { background: var(--comida); } .bg-limpeza { background: var(--limpeza); } .bg-carnes { background: var(--carnes); } .bg-outros { background: var(--outros); }
-        .item-linha { display: flex; align-items: center; justify-content: space-between; padding: 12px; border-bottom: 1px solid #f8fafc; gap: 10px; }
-        .nome-item { flex: 1; font-weight: 500; font-size: 1rem; color: #334155; }
-        .input-qtd-lista { width: 55px; padding: 10px 5px; border: 1px solid #e2e8f0; border-radius: 10px; text-align: center; font-weight: bold; background: #f8fafc; }
+        .item-linha { display: flex; align-items: center; justify-content: space-between; padding: 14px 12px; border-bottom: 1px solid #f1f5f9; gap: 8px; }
+        .nome-item { flex: 1; font-weight: 500; font-size: 1rem; color: #334155; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .input-qtd-lista { width: 45px; padding: 10px 2px; border: 1px solid #e2e8f0; border-radius: 10px; text-align: center; font-weight: bold; background: #f8fafc; font-size: 14px; }
+        .btn-search { background: #f1f5f9; border: none; padding: 12px; border-radius: 10px; font-size: 1.1rem; cursor: pointer; }
         .btn-check { background: #2ecc71; color: white; border: none; padding: 12px 18px; border-radius: 10px; font-weight: bold; cursor: pointer; }
         .btn-del { background: #fff1f2; color: #e11d48; border: none; padding: 12px; border-radius: 10px; cursor: pointer; }
-        #modal-preco { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
-        .modal-content { background: white; padding: 25px; border-radius: 25px; width: 85%; max-width: 320px; text-align: center; }
-        .input-preco-final { font-size: 28px; text-align: center; border: 2px solid var(--comida); border-radius: 15px; width: 100%; color: var(--comida); font-weight: bold; margin: 15px 0; }
+        #modal-preco { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .modal-content { background: white; padding: 25px; border-radius: 25px; width: 85%; max-width: 320px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .input-preco-final { font-size: 32px; text-align: center; border: 2px solid var(--comida); border-radius: 15px; width: 100%; color: var(--comida); font-weight: bold; margin: 15px 0; outline: none; }
         .secao-concluidos { margin-top: 30px; border-top: 2px dashed #cbd5e1; padding-top: 15px; }
-        .item-comprado { background: #f1f5f9; color: #64748b; opacity: 0.8; }
-        .preco-tag { background: #2ecc71; color: white; padding: 3px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; }
-        .footer { position: fixed; bottom: 0; left: 0; right: 0; background: var(--dark); color: white; padding: 20px; border-radius: 25px 25px 0 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.2); z-index: 999; }
+        .item-comprado { background: #f8fafc; color: #94a3b8; }
+        .preco-tag { background: #2ecc71; color: white; padding: 4px 10px; border-radius: 8px; font-size: 0.85rem; font-weight: bold; }
+        .footer { position: fixed; bottom: 0; left: 0; right: 0; background: var(--dark); color: white; padding: 20px 20px 30px 20px; border-radius: 25px 25px 0 0; box-shadow: 0 -5px 25px rgba(0,0,0,0.3); z-index: 999; }
         .total-container { display: flex; justify-content: space-around; margin-bottom: 15px; text-align: center; }
-        .valor-destaque { font-size: 1.2rem; font-weight: bold; display: block; }
-        .btn-whatsapp { background: #25d366; color: white; width: 100%; border: none; padding: 16px; border-radius: 15px; font-weight: bold; font-size: 1rem; cursor: pointer; }
-        #toast { visibility: hidden; min-width: 200px; background-color: #334155; color: #fff; text-align: center; border-radius: 50px; padding: 12px; position: fixed; z-index: 3000; left: 50%; bottom: 230px; transform: translateX(-50%); }
-        #toast.show { visibility: visible; animation: fadeInOut 2.5s; }
-        @keyframes fadeInOut { 0% { opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
+        .valor-destaque { font-size: 1.3rem; font-weight: bold; display: block; margin-top: 5px; }
+        .btn-whatsapp { background: #25d366; color: white; width: 100%; border: none; padding: 18px; border-radius: 15px; font-weight: bold; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        #toast { visibility: hidden; min-width: 220px; background-color: #334155; color: #fff; text-align: center; border-radius: 50px; padding: 14px; position: fixed; z-index: 3000; left: 50%; bottom: 260px; transform: translateX(-50%); box-shadow: 0 4px 12px rgba(0,0,0,0.2); font-weight: 500; }
+        #toast.show { visibility: visible; animation: fadeInOut 2.8s; }
+        @keyframes fadeInOut { 0% { opacity: 0; bottom: 240px; } 20% { opacity: 1; bottom: 260px; } 80% { opacity: 1; bottom: 260px; } 100% { opacity: 0; bottom: 240px; } }
     </style>
 </head>
 <body>
@@ -49,12 +48,12 @@
 
 <div class="container">
     <div class="header-top">
-        <h2 style="margin:0; font-size: 1.4rem;">🛒 Lista Familiar</h2>
-        <button class="btn-limpar" onclick="limparTudo()">Limpar Tudo</button>
+        <h2 style="margin:0; font-size: 1.5rem; color: var(--dark);">🛒 Lista Familiar</h2>
+        <button class="btn-limpar" onclick="limparTudo()">Apagar Tudo</button>
     </div>
 
     <div class="card-add">
-        <input type="text" id="nomeProd" placeholder="O que falta?" oninput="classificarAuto()">
+        <input type="text" id="nomeProd" placeholder="O que vamos comprar?" oninput="classificarAuto()">
         <div style="display: flex; gap: 10px;">
             <select id="catProd">
                 <option value="comida">🍏 Comida</option>
@@ -62,15 +61,15 @@
                 <option value="carnes">🥩 Carnes</option>
                 <option value="outros">📦 Outros</option>
             </select>
-            <input type="number" id="qtdProd" value="1" style="width: 80px;">
+            <input type="number" id="qtdProd" value="1" min="1" style="width: 80px;">
         </div>
-        <button class="btn-add" onclick="adicionar()">ADICIONAR ITEM</button>
+        <button class="btn-add" onclick="adicionar()">ADICIONAR À LISTA</button>
     </div>
 
     <div id="lista-pendente"></div>
 
     <div class="secao-concluidos" id="area-concluidos" style="display:none;">
-        <h4 style="color: #64748b; margin-left: 10px;">✅ Carrinho</h4>
+        <h4 style="color: #64748b; margin: 0 0 10px 10px; font-size: 0.9rem; text-transform: uppercase;">✅ No Carrinho</h4>
         <div id="lista-concluida"></div>
     </div>
 
@@ -79,51 +78,68 @@
             <div>Total<br><span class="valor-destaque" style="color:#2ecc71">R$ <span id="valor-total">0,00</span></span></div>
             <div>Por Pessoa<br><span class="valor-destaque" style="color:#3498db">R$ <span id="valor-pessoa">0,00</span></span></div>
         </div>
-        <div style="margin-bottom: 12px; font-size: 0.9rem; text-align:center">
-            Dividir por: <input type="number" id="numPessoas" value="2" oninput="renderizar()" style="width: 45px; padding: 5px; border-radius: 8px; border: none; text-align: center; font-weight: bold;"> pessoas
+        <div style="margin-bottom: 15px; font-size: 0.9rem; text-align:center; opacity: 0.9;">
+            Dividir por: <input type="number" id="numPessoas" value="2" min="1" oninput="renderizar()" style="width: 50px; padding: 6px; border-radius: 8px; border: none; text-align: center; font-weight: bold; color: var(--dark);"> pessoas
         </div>
-        <button class="btn-whatsapp" onclick="compartilharZap()">SINCRONIZAR NO WHATSAPP</button>
+        <button class="btn-whatsapp" onclick="compartilharZap()">
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/></svg>
+            SINCRONIZAR COM A DUPLA
+        </button>
     </div>
 </div>
 
 <div id="modal-preco">
     <div class="modal-content">
-        <h3 id="nome-item-modal" style="margin-top:0">Produto</h3>
-        <p>Qual o valor unitário?</p>
+        <h3 id="nome-item-modal" style="margin: 0 0 5px 0; color: var(--dark);">Produto</h3>
+        <p id="label-memoria" style="font-size: 0.85rem; color: #64748b; margin-bottom: 10px;"></p>
         <input type="text" id="inputPrecoFinal" inputmode="decimal" placeholder="0,00" class="input-preco-final">
         <div style="display: flex; gap: 12px;">
-            <button onclick="fecharModal()" style="flex:1; background:#f1f5f9; border:none; padding:15px; border-radius:12px; font-weight:bold;">Sair</button>
-            <button onclick="confirmarPreco()" style="flex:1; background:var(--comida); color:white; border:none; padding:15px; border-radius:12px; font-weight:bold;">OK</button>
+            <button onclick="fecharModal()" style="flex:1; background:#f1f5f9; border:none; padding:16px; border-radius:12px; font-weight:bold; color: #64748b;">Sair</button>
+            <button onclick="confirmarPreco()" style="flex:1; background:var(--comida); color:white; border:none; padding:16px; border-radius:12px; font-weight:bold;">OK</button>
         </div>
     </div>
 </div>
 
 <script>
     let itens = JSON.parse(localStorage.getItem('lista_final_v1')) || [];
+    let memoriaPrecos = JSON.parse(localStorage.getItem('memoria_precos')) || {};
     let itemEmEdicao = null;
 
     function classificarAuto() {
         const t = document.getElementById('nomeProd').value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
         const s = document.getElementById('catProd');
-        if (/danone|leite|pao|queijo|arroz|feijao|ovo|cafe|biscoito|iogurte|manteiga|fruta/.test(t)) s.value = "comida";
-        else if (/sabao|detergente|amaciante|papel|veja|cloro|shampoo|sabonete|pasta|limpeza/.test(t)) s.value = "limpeza";
-        else if (/carne|frango|bife|picanha|linguica|salsicha|presunto|mussarela|frios/.test(t)) s.value = "carnes";
+        if (/danone|leite|pao|queijo|arroz|feijao|ovo|cafe|biscoito|iogurte|manteiga|fruta|suco|refrigerante|agua|carne|frango|bife|picanha|linguica|salsicha|presunto|mussarela|frios/.test(t)) {
+            if (/carne|frango|bife|picanha|linguica|salsicha|presunto|mussarela|frios/.test(t)) s.value = "carnes";
+            else s.value = "comida";
+        } else if (/sabao|detergente|amaciante|papel|veja|cloro|shampoo|sabonete|pasta|limpeza|bucha|esponja/.test(t)) s.value = "limpeza";
     }
 
     function adicionar() {
         const n = document.getElementById('nomeProd');
         const c = document.getElementById('catProd');
         const q = document.getElementById('qtdProd');
-        if(!n.value) return;
-        itens.push({ id: Date.now(), nome: n.value, cat: c.value, qtd: parseInt(q.value) || 1, preco: 0, comprado: false });
+        if(!n.value.trim()) return;
+        itens.push({ id: Date.now(), nome: n.value.trim(), cat: c.value, qtd: parseInt(q.value) || 1, preco: 0, comprado: false });
         n.value = ''; q.value = '1'; salvar();
+    }
+
+    function consultarPreco(nome) {
+        window.open(`https://www.google.com/search?tbm=shop&q=${encodeURIComponent(nome)}`, '_blank');
     }
 
     function abrirModal(id) {
         itemEmEdicao = id;
         const item = itens.find(i => i.id === id);
         document.getElementById('nome-item-modal').innerText = item.nome;
-        document.getElementById('inputPrecoFinal').value = '';
+        const ultimo = memoriaPrecos[item.nome.toLowerCase().trim()];
+        const label = document.getElementById('label-memoria');
+        if(ultimo) {
+            label.innerText = `Último preço: R$ ${ultimo.toFixed(2)}`;
+            document.getElementById('inputPrecoFinal').value = ultimo.toFixed(2).replace('.',',');
+        } else {
+            label.innerText = "Qual o valor unitário?";
+            document.getElementById('inputPrecoFinal').value = '';
+        }
         document.getElementById('modal-preco').style.display = 'flex';
         setTimeout(() => document.getElementById('inputPrecoFinal').focus(), 300);
     }
@@ -131,21 +147,27 @@
     function fecharModal() { document.getElementById('modal-preco').style.display = 'none'; }
 
     function confirmarPreco() {
-        const valor = document.getElementById('inputPrecoFinal').value;
+        const vT = document.getElementById('inputPrecoFinal').value;
+        const vN = parseFloat(vT.replace(',','.')) || 0;
         if(itemEmEdicao) {
-            itens = itens.map(i => i.id === itemEmEdicao ? {...i, comprado: true, preco: parseFloat(valor.replace(',','.')) || 0} : i);
+            const item = itens.find(i => i.id === itemEmEdicao);
+            if(vN > 0) {
+                memoriaPrecos[item.nome.toLowerCase().trim()] = vN;
+                localStorage.setItem('memoria_precos', JSON.stringify(memoriaPrecos));
+            }
+            itens = itens.map(i => i.id === itemEmEdicao ? {...i, comprado: true, preco: vN} : i);
             salvar(); fecharModal();
         }
     }
 
     function atualizarQtd(id, q) {
-        itens = itens.map(i => i.id === id ? {...i, qtd: parseInt(q) || 1} : i);
+        itens = itens.map(i => i.id === id ? {...i, qtd: Math.max(1, parseInt(q) || 1)} : i);
         localStorage.setItem('lista_final_v1', JSON.stringify(itens));
         renderizar();
     }
 
     function reverter(id) { itens = itens.map(i => i.id === id ? {...i, comprado: false} : i); salvar(); }
-    function excluir(id) { if(confirm("Remover?")) { itens = itens.filter(i => i.id !== id); salvar(); } }
+    function excluir(id) { if(confirm("Remover este item?")) { itens = itens.filter(i => i.id !== id); salvar(); } }
     function salvar() { localStorage.setItem('lista_final_v1', JSON.stringify(itens)); renderizar(); }
 
     function renderizar() {
@@ -155,36 +177,48 @@
         pBox.innerHTML = ''; cBox.innerHTML = '';
         let soma = 0;
         const cats = [{id:'comida', n:'🍏 COMIDA', cl:'bg-comida'}, {id:'limpeza', n:'🧹 LIMPEZA', cl:'bg-limpeza'}, {id:'carnes', n:'🥩 CARNES', cl:'bg-carnes'}, {id:'outros', n:'📦 OUTROS', cl:'bg-outros'}];
+        
         cats.forEach(c => {
             const filt = itens.filter(i => i.cat === c.id && !i.comprado);
             if(filt.length > 0) {
                 let h = `<div class="bloco-setor"><div class="titulo-setor ${c.cl}"><span>${c.n}</span></div>`;
                 filt.forEach(item => {
-                    h += `<div class="item-linha"><span class="nome-item">${item.nome}</span><input type="number" class="input-qtd-lista" value="${item.qtd}" oninput="atualizarQtd(${item.id}, this.value)"><button class="btn-check" onclick="abrirModal(${item.id})">✅</button><button class="btn-del" onclick="excluir(${item.id})">🗑️</button></div>`;
+                    h += `<div class="item-linha">
+                        <span class="nome-item">${item.nome}</span>
+                        <button class="btn-search" onclick="consultarPreco('${item.nome}')" title="Ver preço">🔍</button>
+                        <input type="number" class="input-qtd-lista" value="${item.qtd}" oninput="atualizarQtd(${item.id}, this.value)">
+                        <button class="btn-check" onclick="abrirModal(${item.id})">✅</button>
+                        <button class="btn-del" onclick="excluir(${item.id})">🗑️</button>
+                    </div>`;
                 });
                 pBox.innerHTML += h + `</div>`;
             }
         });
+
         const comp = itens.filter(i => i.comprado);
         if(comp.length > 0) {
             areaC.style.display = 'block';
             comp.forEach(item => {
                 soma += (item.preco * item.qtd);
-                cBox.innerHTML += `<div class="item-linha item-comprado"><span class="nome-item">${item.qtd}x ${item.nome} <span class="preco-tag">R$ ${item.preco.toFixed(2)}</span></span><button class="btn-del" style="background:#fff" onclick="reverter(${item.id})">🔄</button></div>`;
+                cBox.innerHTML += `<div class="item-linha item-comprado">
+                    <span class="nome-item">${item.qtd}x ${item.nome} <span class="preco-tag">R$ ${item.preco.toFixed(2)}</span></span>
+                    <button class="btn-del" style="background:#fff; color:#94a3b8" onclick="reverter(${item.id})">🔄</button>
+                </div>`;
             });
         } else { areaC.style.display = 'none'; }
+        
         document.getElementById('valor-total').innerText = soma.toFixed(2).replace('.',',');
-        const nP = document.getElementById('numPessoas').value || 1;
+        const nP = Math.max(1, document.getElementById('numPessoas').value || 1);
         document.getElementById('valor-pessoa').innerText = (soma / nP).toFixed(2).replace('.',',');
     }
 
     function compartilharZap() {
         const d = btoa(unescape(encodeURIComponent(JSON.stringify(itens))));
         const url = window.location.origin + window.location.pathname + "?d=" + d;
-        window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent("*🛒 NOSSA LISTA ATUALIZADA:* \n" + url));
+        window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent("*🛒 LISTA DE COMPRAS ATUALIZADA:* \n" + url));
     }
 
-    function limparTudo() { if(confirm("Limpar lista?")) { itens = []; salvar(); } }
+    function limparTudo() { if(confirm("Deseja apagar TODOS os itens da lista?")) { itens = []; salvar(); } }
 
     window.onload = () => {
         const urlParams = new URLSearchParams(window.location.search);
@@ -198,8 +232,8 @@
                     else { itens = itens.map(i => i.id === item.id ? item : i); }
                 });
                 salvar();
-                document.getElementById("toast").className = "show";
-                setTimeout(() => { document.getElementById("toast").className = ""; }, 2500);
+                const t = document.getElementById("toast"); t.className = "show";
+                setTimeout(() => { t.className = ""; }, 2800);
                 window.history.replaceState({}, '', window.location.pathname);
             } catch(e) {}
         }
