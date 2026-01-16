@@ -2,14 +2,44 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#1e293b">
     <title>Lista Familiar Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/davidshimjs-qrcodejs@0.0.2/qrcode.min.js"></script>
     <style>
-        :root { --limpeza: #3498db; --comida: #2ecc71; --carnes: #e74c3c; --bebidas: #667eea; --outros: #95a5a6; --dark: #1e293b; }
-        body { font-family: -apple-system, sans-serif; background: #f0f2f5; margin: 0; padding: 10px; padding-bottom: 160px; -webkit-tap-highlight-color: transparent; }
+        :root { 
+            --limpeza: #3498db; --comida: #2ecc71; --carnes: #e74c3c; --bebidas: #667eea; --outros: #95a5a6; --dark: #1e293b; 
+            --safe-bottom: env(safe-area-inset-bottom);
+        }
+
+        /* Bloqueia o movimento fantasma da página */
+        html, body { 
+            height: 100%; 
+            margin: 0; 
+            padding: 0; 
+            overflow: hidden; 
+            position: fixed; 
+            width: 100%;
+            background: #f0f2f5;
+            font-family: -apple-system, system-ui, sans-serif;
+        }
+
+        /* Container principal que permite scroll apenas na lista */
+        .main-wrapper {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .scroll-area {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch; /* Scroll suave no iOS */
+            padding: 15px 15px 180px 15px;
+        }
+
         .container { max-width: 500px; margin: auto; }
         
         .card-add { background: white; padding: 15px; border-radius: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 15px; }
@@ -24,73 +54,85 @@
         .bg-comida { background: var(--comida); } .bg-limpeza { background: var(--limpeza); } .bg-carnes { background: var(--carnes); } .bg-bebidas { background: var(--bebidas); } .bg-outros { background: var(--outros); }
         
         .item-linha { display: flex; align-items: center; justify-content: space-between; padding: 10px; border-bottom: 1px solid #f8fafc; gap: 8px; }
-        .nome-item { flex: 1; font-weight: 500; font-size: 0.95rem; color: #334155; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        
-        .qtd-ajuste { width: 50px; padding: 8px 4px; text-align: center; border: 1px solid #e2e8f0; border-radius: 8px; font-weight: bold; background: #f8fafc; -webkit-appearance: none; }
+        .nome-item { flex: 1; font-weight: 500; font-size: 0.95rem; color: #334155; }
+        .qtd-ajuste { width: 50px; padding: 8px 4px; text-align: center; border: 1px solid #e2e8f0; border-radius: 8px; font-weight: bold; background: #f8fafc; }
 
-        .btn-check { background: #2ecc71; color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .btn-del { background: #fff1f2; color: #e11d48; border: none; padding: 10px; border-radius: 8px; cursor: pointer; }
+        .btn-check { background: #2ecc71; color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; }
+        .btn-del { background: #fff1f2; color: #e11d48; border: none; padding: 10px; border-radius: 8px; }
         
-        .footer { position: fixed; bottom: 0; left: 0; right: 0; background: var(--dark); color: white; padding: 15px 20px 30px 20px; border-radius: 20px 20px 0 0; z-index: 999; display: flex; align-items: center; justify-content: space-between; }
-        .info-valores { display: flex; flex-direction: column; gap: 4px; }
-        .linha-divisao { display: flex; align-items: center; font-size: 0.8rem; opacity: 0.9; gap: 5px; }
-        .input-pessoas { width: 40px; background: rgba(255,255,255,0.15); border: none; color: white; text-align: center; border-radius: 5px; font-weight: bold; padding: 4px 0; }
+        /* Rodapé Fixo e Estável */
+        .footer { 
+            position: absolute; 
+            bottom: 0; 
+            left: 0; 
+            right: 0; 
+            background: var(--dark); 
+            color: white; 
+            padding: 15px 20px calc(15px + var(--safe-bottom)); 
+            border-radius: 25px 25px 0 0; 
+            z-index: 999; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.2);
+        }
         .valor-bold { font-weight: bold; color: #2ecc71; font-size: 1.2rem; }
-        .acoes-footer { display: flex; gap: 8px; }
-        .btn-footer { border: none; padding: 12px; border-radius: 12px; cursor: pointer; font-weight: bold; }
+        .input-pessoas { width: 40px; background: rgba(255,255,255,0.15); border: none; color: white; text-align: center; border-radius: 5px; font-weight: bold; padding: 4px 0; }
 
+        /* Modais */
         #modal-preco, #modal-qr { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
         .modal-content { background: white; padding: 20px; border-radius: 25px; width: 85%; max-width: 320px; text-align: center; }
-        .card-historico { background: #f8fafc; padding: 12px; border-radius: 15px; margin: 15px 0; border: 1px solid #e2e8f0; }
-        #inputPrecoFinal { font-size: 32px; text-align: center; border: 2px solid #2ecc71; border-radius: 12px; width: 100%; color: #2ecc71; font-weight: bold; margin-bottom: 20px; padding: 10px; outline: none; }
-        #qrcode { background: white; padding: 15px; border-radius: 10px; display: inline-block; }
+        #inputPrecoFinal { font-size: 32px; text-align: center; border: 2px solid #2ecc71; border-radius: 12px; width: 100%; color: #2ecc71; font-weight: bold; margin-bottom: 20px; padding: 10px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px; padding: 0 5px;">
-        <h2 style="margin:0; font-size: 1.1rem; color: #1e293b;">🛒 Minha Lista Pro</h2>
-        <button onclick="limparTudo()" style="background:none; border:none; color:#ef4444; font-weight:bold; font-size: 0.8rem;">LIMPAR TUDO</button>
-    </div>
+<div class="main-wrapper">
+    <div class="scroll-area">
+        <div class="container">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
+                <h2 style="margin:0; font-size: 1.1rem; color: #1e293b;">🛒 Lista Familiar Pro</h2>
+                <button onclick="limparTudo()" style="background:none; border:none; color:#ef4444; font-weight:bold; font-size: 0.8rem;">LIMPAR TUDO</button>
+            </div>
 
-    <div class="card-add">
-        <div class="input-row">
-            <input type="text" id="nomeProd" placeholder="O que comprar?" oninput="classificarAuto()" onkeydown="if(event.key==='Enter') adicionar()">
-            <button class="btn-lupa" onclick="pesquisarRegional()">🔍</button>
-        </div>
-        <div class="input-row">
-            <select id="catProd" style="flex: 2;">
-                <option value="comida">🍏 Comida</option>
-                <option value="carnes">🥩 Carnes / Peixe</option>
-                <option value="bebidas">🥤 Bebidas</option>
-                <option value="limpeza">🧹 Limpeza</option>
-                <option value="outros">📦 Outros</option>
-            </select>
-            <input type="number" id="qtdProd" value="1" style="flex: 1; text-align: center;" onfocus="this.select()">
-        </div>
-        <button class="btn-add" onclick="adicionar()">ADICIONAR</button>
-    </div>
+            <div class="card-add">
+                <div class="input-row">
+                    <input type="text" id="nomeProd" placeholder="O que comprar?" oninput="classificarAuto()" onkeydown="if(event.key==='Enter') adicionar()">
+                    <button class="btn-lupa" onclick="pesquisarRegional()">🔍</button>
+                </div>
+                <div class="input-row">
+                    <select id="catProd" style="flex: 2;">
+                        <option value="comida">🍏 Comida</option>
+                        <option value="carnes">🥩 Carnes / Peixe</option>
+                        <option value="bebidas">🥤 Bebidas</option>
+                        <option value="limpeza">🧹 Limpeza</option>
+                        <option value="outros">📦 Outros</option>
+                    </select>
+                    <input type="number" id="qtdProd" value="1" style="flex: 1; text-align: center;" onfocus="this.select()">
+                </div>
+                <button class="btn-add" onclick="adicionar()">ADICIONAR ITEM</button>
+            </div>
 
-    <div id="lista-pendente"></div>
-    
-    <div id="area-concluidos" style="display:none; margin-top: 25px;">
-        <h4 style="color: #64748b; font-size: 0.75rem; margin-left:10px;">✅ NO CARRINHO</h4>
-        <div id="lista-concluida"></div>
+            <div id="lista-pendente"></div>
+            <div id="area-concluidos" style="display:none; margin-top: 25px;">
+                <h4 style="color: #64748b; font-size: 0.75rem; margin-left:10px;">✅ NO CARRINHO</h4>
+                <div id="lista-concluida"></div>
+            </div>
+        </div>
     </div>
 
     <div class="footer">
         <div class="info-valores">
             <div>Total: <span class="valor-bold">R$ <span id="valor-total">0,00</span></span></div>
-            <div class="linha-divisao">
-                <span>Div.</span>
+            <div style="font-size: 0.8rem; opacity: 0.9; display: flex; align-items: center; gap: 5px;">
+                <span>Div. por</span>
                 <input type="number" id="numPessoas" value="2" oninput="renderizar()" onfocus="this.select()" class="input-pessoas">
                 <span>pess: <b>R$ <span id="valor-pessoa">0,00</span></b></span>
             </div>
         </div>
-        <div class="acoes-footer">
-            <button class="btn-footer" style="background:#25d366; color:white" onclick="compartilharZap()">Zap</button>
-            <button class="btn-footer" style="background:white; color:black" onclick="gerarQRCode()">QR</button>
+        <div style="display: flex; gap: 8px;">
+            <button onclick="compartilharZap()" style="background:#25d366; border:none; padding:12px; border-radius:12px; color:white; font-weight:bold;">Zap</button>
+            <button onclick="gerarQRCode()" style="background:white; border:none; padding:12px; border-radius:12px; color:black; font-weight:bold;">QR</button>
         </div>
     </div>
 </div>
@@ -98,7 +140,7 @@
 <div id="modal-preco">
     <div class="modal-content">
         <h3 id="nome-item-modal" style="margin:0; color: #1e293b;">Preço Unitário</h3>
-        <div class="card-historico" id="box-historico">
+        <div id="box-historico" style="background: #f8fafc; padding: 12px; border-radius: 15px; margin: 15px 0; border: 1px solid #e2e8f0;">
             <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase;">Última vez</div>
             <div style="font-size: 1.3rem; color: #475569; font-weight: bold;" id="val-anterior">R$ 0,00</div>
         </div>
@@ -111,7 +153,7 @@
 </div>
 
 <div id="modal-qr" onclick="fecharQR()">
-    <div style="text-align:center;"><div id="qrcode"></div></div>
+    <div id="qrcode" style="background: white; padding: 15px; border-radius: 15px;"></div>
 </div>
 
 <script>
@@ -135,14 +177,7 @@
     function adicionar() {
         const input = document.getElementById('nomeProd');
         if(!input.value.trim()) return;
-        itens.push({ 
-            id: Date.now(), 
-            nome: input.value.trim(), 
-            cat: document.getElementById('catProd').value, 
-            qtd: parseInt(document.getElementById('qtdProd').value) || 1, 
-            preco: 0, 
-            comprado: false 
-        });
+        itens.push({ id: Date.now(), nome: input.value.trim(), cat: document.getElementById('catProd').value, qtd: parseInt(document.getElementById('qtdProd').value) || 1, preco: 0, comprado: false });
         input.value = ''; input.focus(); salvar();
     }
 
@@ -151,19 +186,11 @@
         const item = itens.find(i => i.id === id);
         document.getElementById('nome-item-modal').innerText = item.nome;
         const ultimo = memoriaPrecos[item.nome.toLowerCase().trim()];
-        const boxHist = document.getElementById('box-historico');
-        
-        if(ultimo) {
-            document.getElementById('val-anterior').innerText = `R$ ${ultimo.toFixed(2).replace('.',',')}`;
-            boxHist.style.display = 'block';
-        } else {
-            boxHist.style.display = 'none';
-        }
-        
-        const campo = document.getElementById('inputPrecoFinal');
-        campo.value = '';
+        document.getElementById('box-historico').style.display = ultimo ? 'block' : 'none';
+        if(ultimo) document.getElementById('val-anterior').innerText = `R$ ${ultimo.toFixed(2).replace('.',',')}`;
+        document.getElementById('inputPrecoFinal').value = '';
         document.getElementById('modal-preco').style.display = 'flex';
-        setTimeout(() => { campo.focus(); campo.select(); }, 300);
+        setTimeout(() => document.getElementById('inputPrecoFinal').focus(), 300);
     }
 
     function confirmarPreco() {
@@ -178,13 +205,10 @@
         }
     }
 
-    function atualizarQtd(id, novaQtd) {
-        // Se o campo for limpo, novaQtd será string vazia. Tratamos para não quebrar.
-        let q = novaQtd === "" ? "" : Math.max(1, parseInt(novaQtd) || 1);
-        if(q !== "") {
-            itens = itens.map(item => item.id === id ? {...item, qtd: q} : item);
-            salvar();
-        }
+    function atualizarQtd(id, q) {
+        if(q === "") return;
+        itens = itens.map(item => item.id === id ? {...item, qtd: Math.max(1, parseInt(q) || 1)} : item);
+        salvar();
     }
 
     function renderizar() {
@@ -192,13 +216,7 @@
         const cBox = document.getElementById('lista-concluida');
         pBox.innerHTML = ''; cBox.innerHTML = '';
         let soma = 0;
-        const cats = [
-            {id:'comida', n:'🍏 COMIDA', cl:'bg-comida'},
-            {id:'carnes', n:'🥩 CARNES / PEIXE', cl:'bg-carnes'},
-            {id:'bebidas', n:'🥤 BEBIDAS', cl:'bg-bebidas'},
-            {id:'limpeza', n:'🧹 LIMPEZA', cl:'bg-limpeza'},
-            {id:'outros', n:'📦 OUTROS', cl:'bg-outros'}
-        ];
+        const cats = [{id:'comida', n:'🍏 COMIDA', cl:'bg-comida'},{id:'carnes', n:'🥩 CARNES / PEIXE', cl:'bg-carnes'},{id:'bebidas', n:'🥤 BEBIDAS', cl:'bg-bebidas'},{id:'limpeza', n:'🧹 LIMPEZA', cl:'bg-limpeza'},{id:'outros', n:'📦 OUTROS', cl:'bg-outros'}];
         
         cats.forEach(c => {
             const filt = itens.filter(i => i.cat === c.id && !i.comprado).sort((a,b) => a.nome.localeCompare(b.nome));
