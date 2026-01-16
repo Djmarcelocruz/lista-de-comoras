@@ -27,12 +27,9 @@
         .valor-bold { font-weight: bold; color: #2ecc71; font-size: 1.1rem; }
         .btn-zap-mini { background: #25d366; color: white; border: none; padding: 12px; border-radius: 12px; cursor: pointer; }
         .btn-qr-mini { background: #fff; color: #000; border: none; padding: 12px; border-radius: 12px; cursor: pointer; margin-left: 5px; }
-
-        /* MODAIS */
         #modal-preco, #modal-qr { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(4px); flex-direction: column; }
         .modal-content { background: white; padding: 20px; border-radius: 20px; width: 80%; max-width: 300px; text-align: center; }
         #qrcode { background: white; padding: 15px; border-radius: 10px; margin-bottom: 20px; display: inline-block; }
-        #qrcode img { display: block; margin: auto; }
         .btn-fechar-qr { background: #e74c3c; color: white; border: none; padding: 15px 30px; border-radius: 12px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
@@ -88,9 +85,11 @@
 
 <div id="modal-preco">
     <div class="modal-content">
-        <h3 id="nome-item-modal">Produto</h3>
-        <p id="label-memoria" style="font-size: 0.75rem; color: #64748b;"></p>
-        <input type="text" id="inputPrecoFinal" inputmode="decimal" placeholder="0,00" style="font-size: 24px; text-align: center; border: 2px solid #2ecc71; border-radius: 12px; width: 100%; color: #2ecc71; font-weight: bold; margin: 15px 0; padding: 5px; box-sizing: border-box;">
+        <h3 id="nome-item-modal" style="margin:0; font-size: 1.1rem;">Preço</h3>
+        <p id="label-memoria" style="font-size: 0.75rem; color: #64748b; margin-top: 5px;"></p>
+        <input type="text" id="inputPrecoFinal" inputmode="decimal" placeholder="0,00" 
+               onkeydown="if(event.key==='Enter') confirmarPreco()"
+               style="font-size: 28px; text-align: center; border: 2px solid #2ecc71; border-radius: 12px; width: 100%; color: #2ecc71; font-weight: bold; margin: 15px 0; padding: 10px; box-sizing: border-box;">
         <div style="display: flex; gap: 10px;">
             <button onclick="fecharModal()" style="flex:1; padding:12px; border-radius:10px; border:none; background:#f1f5f9;">Sair</button>
             <button onclick="confirmarPreco()" style="flex:1; padding:12px; border-radius:10px; border:none; background:#2ecc71; color:white; font-weight:bold;">OK</button>
@@ -131,13 +130,16 @@
         document.getElementById('nome-item-modal').innerText = item.nome;
         const ultimo = memoriaPrecos[item.nome.toLowerCase().trim()];
         document.getElementById('label-memoria').innerText = ultimo ? `Último: R$ ${ultimo.toFixed(2)}` : "Preço unitário?";
-        document.getElementById('inputPrecoFinal').value = ultimo ? ultimo.toFixed(2).replace('.',',') : '';
+        const campoPreco = document.getElementById('inputPrecoFinal');
+        campoPreco.value = ultimo ? ultimo.toFixed(2).replace('.',',') : '';
         document.getElementById('modal-preco').style.display = 'flex';
-        setTimeout(() => document.getElementById('inputPrecoFinal').focus(), 200);
+        // Foco automático no campo de preço
+        setTimeout(() => campoPreco.focus(), 100);
     }
 
     function confirmarPreco() {
-        const v = parseFloat(document.getElementById('inputPrecoFinal').value.replace(',','.')) || 0;
+        const campo = document.getElementById('inputPrecoFinal');
+        const v = parseFloat(campo.value.replace(',','.')) || 0;
         if(itemEmEdicao) {
             const item = itens.find(i => i.id === itemEmEdicao);
             if(v > 0) memoriaPrecos[item.nome.toLowerCase().trim()] = v;
@@ -179,17 +181,6 @@
         document.getElementById('valor-pessoa').innerText = (soma / nP).toFixed(2).replace('.',',');
     }
 
-    function gerarQRCode() {
-        const d = btoa(unescape(encodeURIComponent(JSON.stringify(itens))));
-        const url = window.location.origin + window.location.pathname + "?d=" + d;
-        document.getElementById('qrcode').innerHTML = ""; 
-        try {
-            new QRCode(document.getElementById("qrcode"), { text: url, width: 200, height: 200, correctLevel: QRCode.CorrectLevel.L });
-            document.getElementById('modal-qr').style.display = 'flex';
-        } catch(e) { alert("Erro ao gerar QR Code. Tente o link do WhatsApp."); }
-    }
-
-    function fecharQR() { document.getElementById('modal-qr').style.display = 'none'; }
     function fecharModal() { document.getElementById('modal-preco').style.display = 'none'; }
     function salvar() { localStorage.setItem('lista_final_v1', JSON.stringify(itens)); renderizar(); }
     function atualizarQtd(id, q) { itens = itens.map(i => i.id === id ? {...i, qtd: Math.max(1, parseInt(q) || 1)} : i); salvar(); }
@@ -201,6 +192,14 @@
         const url = window.location.origin + window.location.pathname + "?d=" + d;
         window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent("*🛒 LISTA:* " + url));
     }
+    function gerarQRCode() {
+        const d = btoa(unescape(encodeURIComponent(JSON.stringify(itens))));
+        const url = window.location.origin + window.location.pathname + "?d=" + d;
+        document.getElementById('qrcode').innerHTML = ""; 
+        new QRCode(document.getElementById("qrcode"), { text: url, width: 200, height: 200 });
+        document.getElementById('modal-qr').style.display = 'flex';
+    }
+    function fecharQR() { document.getElementById('modal-qr').style.display = 'none'; }
 
     window.onload = () => {
         const d = new URLSearchParams(window.location.search).get('d');
