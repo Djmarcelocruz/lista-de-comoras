@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#1e293b">
-    <title>Lista Familiar Pro + QR</title>
+    <title>Lista Familiar Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/davidshimjs-qrcodejs@0.0.2/qrcode.min.js"></script>
     <style>
         :root { --limpeza: #3498db; --comida: #2ecc71; --carnes: #e74c3c; --bebidas: #667eea; --outros: #95a5a6; --dark: #1e293b; }
@@ -19,21 +19,22 @@
         .bg-comida { background: var(--comida); } .bg-limpeza { background: var(--limpeza); } .bg-carnes { background: var(--carnes); } .bg-bebidas { background: var(--bebidas); } .bg-outros { background: var(--outros); }
         .item-linha { display: flex; align-items: center; justify-content: space-between; padding: 10px; border-bottom: 1px solid #f8fafc; gap: 8px; }
         .nome-item { flex: 1; font-weight: 500; font-size: 0.95rem; color: #334155; }
-        .btn-check { background: #2ecc71; color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; }
+        .btn-check { background: #2ecc71; color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
         .btn-del { background: #fff1f2; color: #e11d48; border: none; padding: 10px; border-radius: 8px; }
         
-        /* FOOTER */
+        /* FOOTER COM DIVISÃO */
         .footer { position: fixed; bottom: 0; left: 0; right: 0; background: var(--dark); color: white; padding: 12px 15px 25px 15px; border-radius: 20px 20px 0 0; z-index: 999; display: flex; align-items: center; justify-content: space-between; }
         .valor-bold { font-weight: bold; color: #2ecc71; font-size: 1.1rem; }
-        .btn-zap-mini { background: #25d366; color: white; border: none; padding: 12px; border-radius: 12px; }
-        .btn-qr-mini { background: #fff; color: #000; border: none; padding: 12px; border-radius: 12px; margin-left: 5px; }
+        .btn-zap-mini { background: #25d366; color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; }
+        .btn-qr-mini { background: #fff; color: #000; border: none; padding: 12px; border-radius: 12px; margin-left: 5px; font-weight: bold; }
 
-        /* MODAIS */
+        /* MODAL DE PREÇO AJUSTADO */
         #modal-preco, #modal-qr { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(4px); flex-direction: column; }
         .modal-content { background: white; padding: 20px; border-radius: 20px; width: 85%; max-width: 320px; text-align: center; }
         
-        /* Input de Preço Especial para Teclado Numérico */
+        .card-historico { background: #f1f5f9; padding: 10px; border-radius: 12px; margin: 10px 0; border: 1px dashed #cbd5e1; }
         #inputPrecoFinal { font-size: 32px; text-align: center; border: 2px solid #2ecc71; border-radius: 12px; width: 100%; color: #2ecc71; font-weight: bold; margin-bottom: 15px; padding: 10px; }
+        #qrcode { background: white; padding: 15px; border-radius: 10px; margin-bottom: 20px; display: inline-block; }
     </style>
 </head>
 <body>
@@ -68,7 +69,10 @@
     <div class="footer">
         <div>
             <div style="font-size:0.85rem">Total: <span class="valor-bold">R$ <span id="valor-total">0,00</span></span></div>
-            <div style="font-size:0.75rem; opacity:0.8">Cada: R$ <span id="valor-pessoa">0,00</span></div>
+            <div style="font-size:0.75rem; opacity:0.9">
+                Div <input type="number" id="numPessoas" value="2" oninput="renderizar()" style="width:30px; background:rgba(255,255,255,0.1); border:none; color:white; text-align:center; border-radius:4px;"> p.: 
+                <b>R$ <span id="valor-pessoa">0,00</span></b>
+            </div>
         </div>
         <div style="display: flex;">
             <button class="btn-zap-mini" onclick="compartilharZap()">Zap</button>
@@ -79,13 +83,17 @@
 
 <div id="modal-preco">
     <div class="modal-content">
-        <h3 id="nome-item-modal" style="margin:0">Preço</h3>
-        <p id="label-memoria" style="font-size: 0.8rem; color: #64748b;"></p>
+        <h3 id="nome-item-modal" style="margin:0; color: #1e293b;">Preço</h3>
+        
+        <div class="card-historico" id="box-historico">
+            <span style="font-size: 0.7rem; color: #64748b; text-transform: uppercase;">Preço da última compra</span><br>
+            <b style="font-size: 1.2rem; color: #475569;" id="val-anterior">R$ 0,00</b>
+        </div>
         
         <input type="text" id="inputPrecoFinal" inputmode="decimal" placeholder="0,00">
         
         <div style="display: flex; gap: 10px;">
-            <button onclick="fecharModal()" style="flex:1; padding:15px; border-radius:12px; border:none; background:#f1f5f9; font-weight:bold;">Voltar</button>
+            <button onclick="fecharModal()" style="flex:1; padding:15px; border-radius:12px; border:none; background:#f1f5f9; font-weight:bold; color: #64748b;">Voltar</button>
             <button onclick="confirmarPreco()" style="flex:1; padding:15px; border-radius:12px; border:none; background:#2ecc71; color:white; font-weight:bold;">SALVAR</button>
         </div>
     </div>
@@ -93,7 +101,7 @@
 
 <div id="modal-qr" onclick="fecharQR()">
     <div id="qrcode"></div>
-    <p style="color:white">Toque para fechar</p>
+    <p style="color:white; margin-top: 10px;">Toque para fechar</p>
 </div>
 
 <script>
@@ -101,11 +109,9 @@
     let memoriaPrecos = JSON.parse(localStorage.getItem('memoria_precos')) || {};
     let itemEmEdicao = null;
 
-    // ESCUTADOR DE TECLADO PARA O PREÇO
+    // Detectar Enter no teclado numérico
     document.getElementById('inputPrecoFinal').addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-            confirmarPreco();
-        }
+        if (e.key === 'Enter') confirmarPreco();
     });
 
     function classificarAuto() {
@@ -128,17 +134,22 @@
         itemEmEdicao = id;
         const item = itens.find(i => i.id === id);
         document.getElementById('nome-item-modal').innerText = item.nome;
+        
         const ultimo = memoriaPrecos[item.nome.toLowerCase().trim()];
-        document.getElementById('label-memoria').innerText = ultimo ? `Último: R$ ${ultimo.toFixed(2)}` : "Digite o preço unitário";
+        const boxHist = document.getElementById('box-historico');
+        
+        if(ultimo) {
+            document.getElementById('val-anterior').innerText = `R$ ${ultimo.toFixed(2).replace('.',',')}`;
+            boxHist.style.display = 'block';
+        } else {
+            boxHist.style.display = 'none';
+        }
         
         const campo = document.getElementById('inputPrecoFinal');
-        campo.value = ultimo ? ultimo.toFixed(2).replace('.',',') : '';
+        campo.value = ''; // Começa limpo para digitar o novo, ou use ultimo.toFixed(2) se quiser que ele venha preenchido
         document.getElementById('modal-preco').style.display = 'flex';
         
-        setTimeout(() => {
-            campo.focus();
-            campo.select(); // Seleciona o texto para facilitar a correção
-        }, 300);
+        setTimeout(() => campo.focus(), 300);
     }
 
     function confirmarPreco() {
@@ -179,30 +190,34 @@
             document.getElementById('area-concluidos').style.display = 'block';
             comp.forEach(item => {
                 soma += (item.preco * item.qtd);
-                cBox.innerHTML += `<div class="item-linha" style="opacity:0.6"><span>${item.nome}</span><button onclick="reverter(${item.id})">🔄</button></div>`;
+                cBox.innerHTML += `<div class="item-linha" style="opacity:0.6"><span>${item.nome} (R$ ${item.preco.toFixed(2)})</span><button onclick="reverter(${item.id})">🔄</button></div>`;
             });
+        } else {
+            document.getElementById('area-concluidos').style.display = 'none';
         }
+        
         document.getElementById('valor-total').innerText = soma.toFixed(2).replace('.',',');
-        document.getElementById('valor-pessoa').innerText = (soma / 2).toFixed(2).replace('.',',');
+        const nP = document.getElementById('numPessoas').value || 1;
+        document.getElementById('valor-pessoa').innerText = (soma / nP).toFixed(2).replace('.',',');
     }
 
     function fecharModal() { document.getElementById('modal-preco').style.display = 'none'; }
     function salvar() { localStorage.setItem('lista_final_v1', JSON.stringify(itens)); renderizar(); }
     function reverter(id) { itens = itens.map(i => i.id === id ? {...i, comprado: false} : i); salvar(); }
-    function excluir(id) { itens = itens.filter(i => i.id !== id); salvar(); }
+    function excluir(id) { if(confirm("Excluir item?")) { itens = itens.filter(i => i.id !== id); salvar(); } }
     function limparTudo() { if(confirm("Limpar lista?")) { itens = []; salvar(); } }
     
     function compartilharZap() {
         const d = btoa(unescape(encodeURIComponent(JSON.stringify(itens))));
         const url = window.location.origin + window.location.pathname + "?d=" + d;
-        window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent(url));
+        window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent("🛒 Minha Lista: " + url));
     }
 
     function gerarQRCode() {
         const d = btoa(unescape(encodeURIComponent(JSON.stringify(itens))));
         const url = window.location.origin + window.location.pathname + "?d=" + d;
         document.getElementById('qrcode').innerHTML = "";
-        new QRCode(document.getElementById("qrcode"), { text: url, width: 200, height: 200 });
+        new QRCode(document.getElementById("qrcode"), { text: url, width: 220, height: 220 });
         document.getElementById('modal-qr').style.display = 'flex';
     }
     function fecharQR() { document.getElementById('modal-qr').style.display = 'none'; }
