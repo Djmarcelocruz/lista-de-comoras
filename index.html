@@ -193,6 +193,7 @@
     transition: all 0.2s;
     background: var(--primary);
     color: white;
+    text-decoration: none;
   }
   
   .btn:hover {
@@ -242,6 +243,8 @@
     font-weight: 500;
     transition: all 0.2s;
     cursor: pointer;
+    background: none;
+    border: none;
   }
   
   .nav-item .icon { font-size: 24px; transition: transform 0.2s; }
@@ -308,6 +311,48 @@
   .badge-danger { background: #f8d7da; color: #721c24; }
   .badge-info { background: #d1ecf1; color: #0c5460; }
 
+  /* Container do contrato para impressão - apenas o conteúdo interno */
+  .contract-print-area {
+    background: white;
+    color: black;
+    padding: 40px;
+    font-family: 'Times New Roman', Times, serif;
+    line-height: 1.6;
+    font-size: 14px;
+  }
+
+  .contract-print-area h2 {
+    color: black;
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 24px;
+  }
+
+  .contract-print-area p {
+    margin-bottom: 15px;
+    text-align: justify;
+  }
+
+  .contract-print-area .signature-area {
+    margin-top: 50px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .contract-print-area .signature-box {
+    text-align: center;
+    width: 45%;
+  }
+
+  .contract-print-area .signature-line {
+    border-top: 1px solid #333;
+    height: 60px;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+
   .document-preview {
     background: white;
     border: 1px solid #ddd;
@@ -316,19 +361,24 @@
     margin: 20px 0;
     max-height: 500px;
     overflow-y: auto;
-    font-family: 'Times New Roman', serif;
-    color: #333;
-    line-height: 1.6;
+  }
+
+  .signature-pad-container {
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 10px;
+    margin: 15px 0;
   }
 
   .signature-pad {
     background: white;
-    border: 2px solid var(--border);
-    border-radius: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
     width: 100%;
     height: 200px;
-    margin: 15px 0;
     touch-action: none;
+    cursor: crosshair;
   }
 
   .modal-overlay {
@@ -537,10 +587,57 @@
     gap: 8px;
   }
 
+  .progress-bar {
+    width: 100%;
+    height: 20px;
+    background: var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 10px;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--success), var(--primary));
+    transition: width 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  /* CSS específico para impressão - esconde tudo exceto o contrato */
   @media print {
-    .app-header, .bottom-nav, .no-print { display: none !important; }
-    .main-content { margin-top: 0; }
-    .document-preview { border: none; max-height: none; overflow: visible; }
+    body * {
+      visibility: hidden;
+    }
+    
+    .contract-print-area,
+    .contract-print-area * {
+      visibility: visible;
+    }
+    
+    .contract-print-area {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      padding: 20px;
+      margin: 0;
+      border: none;
+      max-height: none;
+      overflow: visible;
+    }
+    
+    .no-print,
+    .app-header,
+    .bottom-nav,
+    .signature-pad-container,
+    .btn {
+      display: none !important;
+    }
   }
 
   @media (min-width: 1024px) {
@@ -598,7 +695,7 @@
 </div>
 
 <!-- HEADER -->
-<header class="app-header">
+<header class="app-header no-print">
   <h1>🎧 <span id="appTitle">DJ Pro</span></h1>
   <div class="header-actions">
     <button class="header-btn" onclick="showModal('config')" title="Configurações">⚙️</button>
@@ -612,9 +709,9 @@
 <!-- DASHBOARD -->
 <section id="dashboard" class="section active">
   <div class="stats-grid">
-    <div class="stat-card">
+    <div class="stat-card" onclick="showTab('caixa')" style="cursor: pointer;">
       <div class="stat-value" id="dashTotal">R$ 0</div>
-      <div class="stat-label">Faturamento</div>
+      <div class="stat-label">💰 Caixa</div>
     </div>
     <div class="stat-card" style="background: linear-gradient(135deg, var(--info) 0%, #0dcaf0 100%);">
       <div class="stat-value" id="dashEventos">0</div>
@@ -646,21 +743,21 @@
       <button class="btn btn-success" onclick="showTab('cadastro')">
         ➕ Novo Evento
       </button>
-      <button class="btn btn-primary" onclick="showTab('recibo')">
-        🧾 Emitir Recibo
+      <button class="btn btn-primary" onclick="showTab('caixa')">
+        💰 Caixa/Financeiro
       </button>
     </div>
   </div>
 </section>
 
-<!-- CADASTRO DE EVENTO - COM TODOS OS CAMPOS DO CLIENTE -->
+<!-- CADASTRO DE EVENTO -->
 <section id="cadastro" class="section">
   <div class="card">
     <div class="card-title">📝 Novo Evento</div>
     
     <input type="hidden" id="editId">
     
-    <!-- DADOS DO CLIENTE (CONTRATANTE) -->
+    <!-- DADOS DO CLIENTE -->
     <div class="section-group">
       <div class="section-group-title">👤 Dados do Cliente (Contratante)</div>
       
@@ -672,7 +769,7 @@
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">CPF/CNPJ</label>
-          <input type="text" id="cli_cpf" class="form-control" placeholder="000.000.000-00 ou 00.000.000/0000-00">
+          <input type="text" id="cli_cpf" class="form-control" placeholder="000.000.000-00">
         </div>
         <div class="form-group">
           <label class="form-label">RG</label>
@@ -875,7 +972,7 @@
 
 <!-- CONTRATO -->
 <section id="contrato" class="section">
-  <div class="card">
+  <div class="card no-print">
     <div class="card-title">📄 Gerar Contrato</div>
     
     <div class="form-group">
@@ -884,32 +981,29 @@
         <option value="">-- Escolha um evento --</option>
       </select>
     </div>
+  </div>
 
-    <div id="areaContrato" style="display: none;">
-      <div class="document-preview" id="previewContrato"></div>
-      
-      <div class="form-group">
-        <label class="form-label">Assinatura Digital do Cliente</label>
-        <canvas id="assinaturaCanvas" class="signature-pad"></canvas>
-        <div style="display: flex; gap: 10px; margin-top: 10px;">
-          <button class="btn btn-sm btn-secondary" onclick="limparAssinatura()">🧹 Limpar</button>
-          <button class="btn btn-sm btn-success" onclick="salvarAssinatura()">✅ Confirmar Assinatura</button>
-        </div>
-      </div>
-
-      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 20px;">
-        <button class="btn btn-primary" onclick="imprimirContrato()">
-          🖨️ Imprimir
-        </button>
-        <button class="btn btn-success" onclick="compartilharContrato()">
-          📤 Compartilhar
-        </button>
+  <div id="areaContrato" style="display: none;">
+    <!-- Área de impressão - apenas o contrato -->
+    <div id="contractPrintArea" class="contract-print-area">
+      <!-- Conteúdo do contrato será inserido aqui -->
+    </div>
+    
+    <!-- Controles de assinatura - não aparecem na impressão -->
+    <div class="card signature-pad-container no-print">
+      <div class="card-title">✍️ Assinatura Digital do Cliente</div>
+      <canvas id="assinaturaCanvas" class="signature-pad"></canvas>
+      <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+        <button class="btn btn-sm btn-secondary" onclick="limparAssinatura()">🧹 Limpar</button>
+        <button class="btn btn-sm btn-success" onclick="salvarAssinatura()">💾 Salvar Assinatura</button>
+        <button class="btn btn-sm btn-primary" onclick="imprimirContrato()">🖨️ Imprimir / PDF</button>
+        <button class="btn btn-sm btn-success" onclick="compartilharContrato()">📤 Compartilhar</button>
       </div>
     </div>
   </div>
 </section>
 
-<!-- RECIBO -->
+<!-- RECIBO COM CONTROLE FINANCEIRO -->
 <section id="recibo" class="section">
   <div class="card">
     <div class="card-title">🧾 Emitir Recibo</div>
@@ -921,10 +1015,40 @@
       </select>
     </div>
 
+    <!-- Resumo Financeiro do Evento -->
+    <div id="resumoFinanceiro" style="display: none; margin-bottom: 20px;">
+      <div class="section-group" style="background: linear-gradient(135deg, var(--info) 0%, var(--primary) 100%); color: white;">
+        <div class="section-group-title" style="color: white;">💰 Situação Financeira do Evento</div>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 15px;">
+          <div>
+            <div style="font-size: 12px; opacity: 0.9;">Valor Total</div>
+            <div style="font-size: 20px; font-weight: 700;" id="finTotal">R$ 0,00</div>
+          </div>
+          <div>
+            <div style="font-size: 12px; opacity: 0.9;">Total Recebido</div>
+            <div style="font-size: 20px; font-weight: 700;" id="finRecebido">R$ 0,00</div>
+          </div>
+        </div>
+        <div style="margin-bottom: 10px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+            <span>Saldo Devedor:</span>
+            <span style="font-weight: 700;" id="finSaldo">R$ 0,00</span>
+          </div>
+          <div class="progress-bar" style="background: rgba(255,255,255,0.3);">
+            <div class="progress-fill" id="finProgresso" style="width: 0%; background: white; color: var(--primary);">0%</div>
+          </div>
+        </div>
+        <div style="font-size: 12px; opacity: 0.9; margin-top: 10px;" id="finStatus">
+          Status: Pendente
+        </div>
+      </div>
+    </div>
+
     <div class="form-row">
       <div class="form-group">
-        <label class="form-label">Valor Recebido (R$)</label>
-        <input type="number" id="recibo_valor" class="form-control" step="0.01">
+        <label class="form-label">Valor a Receber Agora (R$)</label>
+        <input type="number" id="recibo_valor" class="form-control" step="0.01" onchange="validarValorRecibo()">
+        <small style="color: var(--text-muted);">Máximo: <span id="valorMaximo">R$ 0,00</span></small>
       </div>
       <div class="form-group">
         <label class="form-label">Data do Pagamento</label>
@@ -972,6 +1096,42 @@
   </div>
 </section>
 
+<!-- CAIXA/FINANCEIRO -->
+<section id="caixa" class="section">
+  <div class="card">
+    <div class="card-title">💰 Controle Financeiro (Caixa)</div>
+    
+    <div class="stats-grid" style="margin-bottom: 20px;">
+      <div class="stat-card">
+        <div class="stat-value" id="cxTotalReceber">R$ 0</div>
+        <div class="stat-label">A Receber</div>
+      </div>
+      <div class="stat-card" style="background: linear-gradient(135deg, var(--success) 0%, #20c997 100%);">
+        <div class="stat-value" id="cxTotalRecebido">R$ 0</div>
+        <div class="stat-label">Recebido</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Filtrar por Status</label>
+      <select id="caixa_filtro" class="form-control" onchange="renderizarCaixa()">
+        <option value="todos">Todos os Eventos</option>
+        <option value="pendente">⏳ Pendentes</option>
+        <option value="parcial">💵 Parcialmente Pago</option>
+        <option value="pago">✅ Quitados</option>
+        <option value="atrasado">⚠️ Atrasados</option>
+      </select>
+    </div>
+
+    <div id="listaCaixa">
+      <div class="empty-state">
+        <div class="empty-state-icon">📭</div>
+        <p>Nenhum evento encontrado</p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- LISTA DE EVENTOS -->
 <section id="lista" class="section">
   <div class="card">
@@ -990,7 +1150,7 @@
   </div>
 </section>
 
-<!-- PERFIL/CONFIGURAÇÕES - COM TODOS OS CAMPOS DO CONTRATADO -->
+<!-- PERFIL/CONFIGURAÇÕES -->
 <section id="perfil" class="section">
   <div class="profile-header">
     <div class="profile-avatar" id="profileAvatar">🎧</div>
@@ -1004,7 +1164,7 @@
     
     <div class="form-group">
       <label class="form-label">Nome Artístico / Nome Fantasia *</label>
-      <input type="text" id="config_nome" class="form-control" placeholder="Como você é conhecido (ex: DJ Silva)">
+      <input type="text" id="config_nome" class="form-control" placeholder="Como você é conhecido">
     </div>
 
     <div class="form-group">
@@ -1253,14 +1413,15 @@
       <textarea id="config_clausula" class="form-control" rows="6" placeholder="Texto padrão que aparecerá em todos os contratos..."></textarea>
     </div>
 
-    <div class="form-group">
-      <label class="form-label">Multa por Cancelamento (%)</label>
-      <input type="number" id="config_multa" class="form-control" placeholder="30" min="0" max="100">
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">Prazo de Desistência (dias)</label>
-      <input type="number" id="config_prazo_desistencia" class="form-control" placeholder="7" min="0">
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Multa por Cancelamento (%)</label>
+        <input type="number" id="config_multa" class="form-control" placeholder="30" min="0" max="100">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Prazo de Desistência (dias)</label>
+        <input type="number" id="config_prazo_desistencia" class="form-control" placeholder="7" min="0">
+      </div>
     </div>
   </div>
 
@@ -1331,26 +1492,26 @@
 
 <!-- NAVEGAÇÃO INFERIOR -->
 <nav class="bottom-nav no-print">
-  <div class="nav-item active" onclick="showTab('dashboard')">
+  <button class="nav-item active" onclick="showTab('dashboard')">
     <span class="icon">📊</span>
     <span>Início</span>
-  </div>
-  <div class="nav-item" onclick="showTab('cadastro')">
+  </button>
+  <button class="nav-item" onclick="showTab('cadastro')">
     <span class="icon">➕</span>
     <span>Novo</span>
-  </div>
-  <div class="nav-item" onclick="showTab('lista')">
+  </button>
+  <button class="nav-item" onclick="showTab('lista')">
     <span class="icon">📅</span>
     <span>Eventos</span>
-  </div>
-  <div class="nav-item" onclick="showTab('recibo')">
-    <span class="icon">🧾</span>
-    <span>Recibos</span>
-  </div>
-  <div class="nav-item" onclick="showTab('perfil')">
+  </button>
+  <button class="nav-item" onclick="showTab('caixa')">
+    <span class="icon">💰</span>
+    <span>Caixa</span>
+  </button>
+  <button class="nav-item" onclick="showTab('perfil')">
     <span class="icon">👤</span>
     <span>Perfil</span>
-  </div>
+  </button>
 </nav>
 
 <!-- MODAL DE CONFIGURAÇÕES RÁPIDAS -->
@@ -1387,7 +1548,6 @@
 // ==================== DADOS E CONFIGURAÇÕES ====================
 
 let config = {
-  // Dados pessoais
   nome: 'DJ Profissional',
   nomeCompleto: '',
   cpf: '',
@@ -1396,8 +1556,6 @@ let config = {
   estadoCivil: '',
   nacionalidade: 'Brasileiro(a)',
   profissao: 'DJ',
-  
-  // Contato
   telefone: '',
   telefone2: '',
   email: '',
@@ -1406,8 +1564,6 @@ let config = {
   facebook: '',
   youtube: '',
   whatsapp: '',
-  
-  // Endereço
   cep: '',
   rua: '',
   numero: '',
@@ -1415,26 +1571,18 @@ let config = {
   bairro: '',
   cidade: '',
   estado: '',
-  
-  // Bancário
   pix: '',
   banco: '',
   agencia: '',
   conta: '',
   titularConta: '',
-  
-  // Profissional
   cnpj: '',
   empresa: '',
   inscricao: '',
   especialidades: [],
-  
-  // Contrato
   clausula: 'O contratado se compromete a prestar serviços de DJ com equipamento profissional, iluminação e sonorização adequada para o evento. O pagamento deve ser efetuado conforme combinado.',
   multa: 30,
   prazoDesistencia: 7,
-  
-  // App
   cor: 'blue',
   pin: '',
   temaEscuro: false
@@ -1446,6 +1594,7 @@ let assinaturas = {};
 let currentPin = '';
 let isDrawing = false;
 let canvas, ctx;
+let currentEventoId = null;
 
 // ==================== INICIALIZAÇÃO ====================
 
@@ -1457,6 +1606,7 @@ document.addEventListener('DOMContentLoaded', function() {
   atualizarSelects();
   renderizarEventos();
   renderizarRecibos();
+  renderizarCaixa();
   
   const hoje = new Date().toISOString().split('T')[0];
   document.getElementById('evt_data').value = hoje;
@@ -1522,11 +1672,12 @@ function showTab(tabId) {
   document.getElementById(tabId).classList.add('active');
   
   const navItems = document.querySelectorAll('.nav-item');
-  const tabIndex = ['dashboard', 'cadastro', 'lista', 'recibo', 'perfil'].indexOf(tabId);
+  const tabIndex = ['dashboard', 'cadastro', 'lista', 'caixa', 'perfil'].indexOf(tabId);
   if (tabIndex >= 0) navItems[tabIndex].classList.add('active');
   
   if (tabId === 'dashboard') atualizarDashboard();
   if (tabId === 'lista') renderizarEventos();
+  if (tabId === 'caixa') renderizarCaixa();
   if (tabId === 'recibo') atualizarSelects();
   if (tabId === 'contrato') atualizarSelects();
   if (tabId === 'perfil') carregarConfiguracoes();
@@ -1545,7 +1696,6 @@ function closeModal(modalId) {
 // ==================== CONFIGURAÇÕES DO PERFIL ====================
 
 function carregarConfiguracoes() {
-  // Dados pessoais
   document.getElementById('config_nome').value = config.nome;
   document.getElementById('config_nome_completo').value = config.nomeCompleto;
   document.getElementById('config_cpf').value = config.cpf;
@@ -1554,8 +1704,6 @@ function carregarConfiguracoes() {
   document.getElementById('config_estado_civil').value = config.estadoCivil || '';
   document.getElementById('config_nacionalidade').value = config.nacionalidade || 'Brasileiro(a)';
   document.getElementById('config_profissao').value = config.profissao || '';
-  
-  // Contato
   document.getElementById('config_telefone').value = config.telefone;
   document.getElementById('config_telefone2').value = config.telefone2 || '';
   document.getElementById('config_email').value = config.email;
@@ -1564,8 +1712,6 @@ function carregarConfiguracoes() {
   document.getElementById('config_facebook').value = config.facebook || '';
   document.getElementById('config_youtube').value = config.youtube || '';
   document.getElementById('config_whatsapp').value = config.whatsapp || '';
-  
-  // Endereço
   document.getElementById('config_cep').value = config.cep || '';
   document.getElementById('config_rua').value = config.rua || '';
   document.getElementById('config_numero').value = config.numero || '';
@@ -1573,20 +1719,19 @@ function carregarConfiguracoes() {
   document.getElementById('config_bairro').value = config.bairro || '';
   document.getElementById('config_cidade').value = config.cidade || '';
   document.getElementById('config_estado').value = config.estado || '';
-  
-  // Bancário
   document.getElementById('config_pix').value = config.pix || '';
   document.getElementById('config_banco').value = config.banco || '';
   document.getElementById('config_agencia').value = config.agencia || '';
   document.getElementById('config_conta').value = config.conta || '';
   document.getElementById('config_titular_conta').value = config.titularConta || '';
-  
-  // Profissional
   document.getElementById('config_cnpj').value = config.cnpj || '';
   document.getElementById('config_empresa').value = config.empresa || '';
   document.getElementById('config_inscricao').value = config.inscricao || '';
+  document.getElementById('config_clausula').value = config.clausula;
+  document.getElementById('config_multa').value = config.multa || 30;
+  document.getElementById('config_prazo_desistencia').value = config.prazoDesistencia || 7;
+  document.getElementById('config_pin').value = config.pin;
   
-  // Especialidades
   if (config.especialidades) {
     document.getElementById('esp_casamentos').checked = config.especialidades.includes('casamentos');
     document.getElementById('esp_aniversarios').checked = config.especialidades.includes('aniversarios');
@@ -1596,19 +1741,9 @@ function carregarConfiguracoes() {
     document.getElementById('esp_debutantes').checked = config.especialidades.includes('debutantes');
   }
   
-  // Contrato
-  document.getElementById('config_clausula').value = config.clausula;
-  document.getElementById('config_multa').value = config.multa || 30;
-  document.getElementById('config_prazo_desistencia').value = config.prazoDesistencia || 7;
-  
-  // Segurança
-  document.getElementById('config_pin').value = config.pin;
-  
-  // Preview
   document.getElementById('profileName').textContent = config.nome;
   document.getElementById('appTitle').textContent = config.nome;
   
-  // Cores
   document.querySelectorAll('.color-option').forEach(opt => {
     opt.classList.remove('selected');
     opt.textContent = '';
@@ -1620,7 +1755,6 @@ function carregarConfiguracoes() {
 }
 
 function salvarConfiguracoes() {
-  // Dados pessoais
   config.nome = document.getElementById('config_nome').value || 'DJ Profissional';
   config.nomeCompleto = document.getElementById('config_nome_completo').value;
   config.cpf = document.getElementById('config_cpf').value;
@@ -1629,8 +1763,6 @@ function salvarConfiguracoes() {
   config.estadoCivil = document.getElementById('config_estado_civil').value;
   config.nacionalidade = document.getElementById('config_nacionalidade').value || 'Brasileiro(a)';
   config.profissao = document.getElementById('config_profissao').value;
-  
-  // Contato
   config.telefone = document.getElementById('config_telefone').value;
   config.telefone2 = document.getElementById('config_telefone2').value;
   config.email = document.getElementById('config_email').value;
@@ -1639,8 +1771,6 @@ function salvarConfiguracoes() {
   config.facebook = document.getElementById('config_facebook').value;
   config.youtube = document.getElementById('config_youtube').value;
   config.whatsapp = document.getElementById('config_whatsapp').value;
-  
-  // Endereço
   config.cep = document.getElementById('config_cep').value;
   config.rua = document.getElementById('config_rua').value;
   config.numero = document.getElementById('config_numero').value;
@@ -1648,20 +1778,14 @@ function salvarConfiguracoes() {
   config.bairro = document.getElementById('config_bairro').value;
   config.cidade = document.getElementById('config_cidade').value;
   config.estado = document.getElementById('config_estado').value;
-  
-  // Bancário
   config.pix = document.getElementById('config_pix').value;
   config.banco = document.getElementById('config_banco').value;
   config.agencia = document.getElementById('config_agencia').value;
   config.conta = document.getElementById('config_conta').value;
   config.titularConta = document.getElementById('config_titular_conta').value;
-  
-  // Profissional
   config.cnpj = document.getElementById('config_cnpj').value;
   config.empresa = document.getElementById('config_empresa').value;
   config.inscricao = document.getElementById('config_inscricao').value;
-  
-  // Especialidades
   config.especialidades = [];
   if (document.getElementById('esp_casamentos').checked) config.especialidades.push('casamentos');
   if (document.getElementById('esp_aniversarios').checked) config.especialidades.push('aniversarios');
@@ -1669,13 +1793,9 @@ function salvarConfiguracoes() {
   if (document.getElementById('esp_formaturas').checked) config.especialidades.push('formaturas');
   if (document.getElementById('esp_infantis').checked) config.especialidades.push('infantis');
   if (document.getElementById('esp_debutantes').checked) config.especialidades.push('debutantes');
-  
-  // Contrato
   config.clausula = document.getElementById('config_clausula').value;
   config.multa = document.getElementById('config_multa').value || 30;
   config.prazoDesistencia = document.getElementById('config_prazo_desistencia').value || 7;
-  
-  // Segurança
   config.pin = document.getElementById('config_pin').value;
   
   salvarDados();
@@ -1719,8 +1839,6 @@ function toggleTheme() {
 
 function salvarEvento() {
   const id = document.getElementById('editId').value;
-  
-  // Validação
   const nome = document.getElementById('cli_nome').value;
   const data = document.getElementById('evt_data').value;
   const valor = parseFloat(document.getElementById('evt_valor').value);
@@ -1733,8 +1851,6 @@ function salvarEvento() {
   
   const evento = {
     id: id || Date.now().toString(),
-    
-    // Dados do cliente
     nome: nome,
     cpf: document.getElementById('cli_cpf').value,
     rg: document.getElementById('cli_rg').value,
@@ -1743,8 +1859,6 @@ function salvarEvento() {
     endereco: document.getElementById('cli_endereco').value,
     profissao: document.getElementById('cli_profissao').value,
     estadoCivil: document.getElementById('cli_estado_civil').value,
-    
-    // Dados do evento
     data: data,
     horaInicio: document.getElementById('evt_hora_inicio').value,
     horaFim: document.getElementById('evt_hora_fim').value,
@@ -1752,15 +1866,11 @@ function salvarEvento() {
     localEndereco: document.getElementById('evt_local_endereco').value,
     tipo: document.getElementById('evt_tipo').value,
     convidados: document.getElementById('evt_convidados').value,
-    
-    // Valores
     valor: valor,
     sinal: parseFloat(document.getElementById('evt_sinal').value) || 0,
     formaPagamento: document.getElementById('evt_forma_pgto').value,
     vencimento: document.getElementById('evt_vencimento').value,
     statusPagamento: document.getElementById('evt_status_pgto').value,
-    
-    // Equipamentos
     equipamentos: {
       som: document.getElementById('equip_som').checked,
       luz: document.getElementById('equip_luz').checked,
@@ -1769,8 +1879,6 @@ function salvarEvento() {
       fumaca: document.getElementById('equip_fumaca').checked,
       bolhas: document.getElementById('equip_bolhas').checked
     },
-    
-    // Outros
     observacoes: document.getElementById('evt_obs').value,
     status: document.getElementById('evt_status').value,
     dataCadastro: new Date().toISOString()
@@ -1791,8 +1899,6 @@ function salvarEvento() {
 
 function limparFormulario() {
   document.getElementById('editId').value = '';
-  
-  // Limpar cliente
   document.getElementById('cli_nome').value = '';
   document.getElementById('cli_cpf').value = '';
   document.getElementById('cli_rg').value = '';
@@ -1801,8 +1907,6 @@ function limparFormulario() {
   document.getElementById('cli_endereco').value = '';
   document.getElementById('cli_profissao').value = '';
   document.getElementById('cli_estado_civil').value = '';
-  
-  // Limpar evento
   document.getElementById('evt_data').value = new Date().toISOString().split('T')[0];
   document.getElementById('evt_hora_inicio').value = '';
   document.getElementById('evt_hora_fim').value = '';
@@ -1810,22 +1914,17 @@ function limparFormulario() {
   document.getElementById('evt_local_endereco').value = '';
   document.getElementById('evt_tipo').value = '';
   document.getElementById('evt_convidados').value = '';
-  
-  // Limpar valores
   document.getElementById('evt_valor').value = '';
   document.getElementById('evt_sinal').value = '';
   document.getElementById('evt_forma_pgto').value = 'Pix';
   document.getElementById('evt_vencimento').value = '';
   document.getElementById('evt_status_pgto').value = 'pendente';
-  
-  // Resetar equipamentos
   document.getElementById('equip_som').checked = true;
   document.getElementById('equip_luz').checked = true;
   document.getElementById('equip_microfone').checked = false;
   document.getElementById('equip_projetor').checked = false;
   document.getElementById('equip_fumaca').checked = false;
   document.getElementById('equip_bolhas').checked = false;
-  
   document.getElementById('evt_obs').value = '';
   document.getElementById('evt_status').value = 'agendado';
 }
@@ -1835,8 +1934,6 @@ function editarEvento(id) {
   if (!evento) return;
   
   document.getElementById('editId').value = evento.id;
-  
-  // Preencher cliente
   document.getElementById('cli_nome').value = evento.nome;
   document.getElementById('cli_cpf').value = evento.cpf || '';
   document.getElementById('cli_rg').value = evento.rg || '';
@@ -1845,8 +1942,6 @@ function editarEvento(id) {
   document.getElementById('cli_endereco').value = evento.endereco || '';
   document.getElementById('cli_profissao').value = evento.profissao || '';
   document.getElementById('cli_estado_civil').value = evento.estadoCivil || '';
-  
-  // Preencher evento
   document.getElementById('evt_data').value = evento.data;
   document.getElementById('evt_hora_inicio').value = evento.horaInicio || '';
   document.getElementById('evt_hora_fim').value = evento.horaFim || '';
@@ -1854,15 +1949,12 @@ function editarEvento(id) {
   document.getElementById('evt_local_endereco').value = evento.localEndereco || '';
   document.getElementById('evt_tipo').value = evento.tipo || '';
   document.getElementById('evt_convidados').value = evento.convidados || '';
-  
-  // Preencher valores
   document.getElementById('evt_valor').value = evento.valor;
   document.getElementById('evt_sinal').value = evento.sinal || '';
   document.getElementById('evt_forma_pgto').value = evento.formaPagamento || 'Pix';
   document.getElementById('evt_vencimento').value = evento.vencimento || '';
   document.getElementById('evt_status_pgto').value = evento.statusPagamento || 'pendente';
   
-  // Preencher equipamentos
   if (evento.equipamentos) {
     document.getElementById('equip_som').checked = evento.equipamentos.som;
     document.getElementById('equip_luz').checked = evento.equipamentos.luz;
@@ -1883,6 +1975,7 @@ function excluirEvento(id) {
   if (!confirm('Tem certeza que deseja excluir este evento?')) return;
   
   eventos = eventos.filter(e => e.id !== id);
+  recibos = recibos.filter(r => r.eventoId !== id);
   salvarDados();
   renderizarEventos();
   atualizarDashboard();
@@ -1978,15 +2071,18 @@ function verEvento(id) {
     if (e.equipamentos.bolhas) equipamentos.push('Máquina de Bolhas');
   }
   
+  const totalRecebido = calcularTotalRecebido(id);
+  const saldo = e.valor - totalRecebido;
+  
   alert(`📅 Evento: ${e.nome}
 📍 Local: ${e.local || 'N/A'}
 🏠 Endereço: ${e.localEndereco || 'N/A'}
 📆 Data: ${new Date(e.data).toLocaleDateString('pt-BR')}
-⏰ Horário: ${e.horaInicio || 'N/A'} ${e.horaFim ? 'às ' + e.horaFim : ''}
+⏰ Horário: ${e.horaInicio || 'N/A'} às ${e.horaFim || 'N/A'}
 👥 Convidados: ${e.convidados || 'N/A'}
-💰 Valor: R$ ${e.valor.toFixed(2)}
-💵 Sinal: R$ ${(e.sinal || 0).toFixed(2)}
-💳 Forma: ${e.formaPagamento || 'N/A'}
+💰 Valor Total: R$ ${e.valor.toFixed(2)}
+💵 Total Recebido: R$ ${totalRecebido.toFixed(2)}
+💳 Saldo: R$ ${saldo.toFixed(2)}
 🎧 Equipamentos: ${equipamentos.join(', ') || 'Nenhum'}
 📝 Obs: ${e.observacoes || 'Nenhuma'}`);
 }
@@ -1995,7 +2091,11 @@ function verEvento(id) {
 
 function atualizarDashboard() {
   const total = eventos.reduce((sum, e) => e.status !== 'cancelado' ? sum + e.valor : sum, 0);
-  const pendentes = eventos.filter(e => e.statusPagamento === 'pendente' || e.statusPagamento === 'sinal_pago').length;
+  const totalRecebido = recibos.reduce((sum, r) => sum + r.valor, 0);
+  const pendentes = eventos.filter(e => {
+    const recebido = calcularTotalRecebido(e.id);
+    return e.status !== 'cancelado' && recebido < e.valor;
+  }).length;
   
   document.getElementById('dashTotal').textContent = 'R$ ' + total.toFixed(2);
   document.getElementById('dashEventos').textContent = eventos.length;
@@ -2041,6 +2141,83 @@ function atualizarDashboard() {
   }
 }
 
+// ==================== CAIXA/FINANCEIRO ====================
+
+function calcularTotalRecebido(eventoId) {
+  return recibos
+    .filter(r => r.eventoId === eventoId)
+    .reduce((sum, r) => sum + r.valor, 0);
+}
+
+function renderizarCaixa() {
+  const filtro = document.getElementById('caixa_filtro').value;
+  const container = document.getElementById('listaCaixa');
+  
+  let totalReceber = 0;
+  let totalRecebido = 0;
+  
+  let html = eventos.map(e => {
+    if (e.status === 'cancelado') return '';
+    
+    const recebido = calcularTotalRecebido(e.id);
+    const saldo = e.valor - recebido;
+    const percentual = Math.round((recebido / e.valor) * 100);
+    
+    totalReceber += saldo;
+    totalRecebido += recebido;
+    
+    // Filtros
+    if (filtro === 'pendente' && recebido > 0) return '';
+    if (filtro === 'pago' && saldo > 0) return '';
+    if (filtro === 'parcial' && (recebido === 0 || saldo === 0)) return '';
+    if (filtro === 'atrasado') {
+      const vencimento = e.vencimento ? new Date(e.vencimento) : null;
+      if (!vencimento || vencimento > new Date() || saldo <= 0) return '';
+    }
+    
+    const statusClass = saldo <= 0 ? 'badge-success' : recebido > 0 ? 'badge-warning' : 'badge-danger';
+    const statusText = saldo <= 0 ? 'Quitado' : recebido > 0 ? 'Parcial' : 'Pendente';
+    
+    return `
+      <div class="list-item">
+        <div class="list-item-header">
+          <div>
+            <div class="list-item-title">${e.nome}</div>
+            <div class="list-item-meta">
+              📅 ${new Date(e.data).toLocaleDateString('pt-BR')} • ${e.tipo || 'Evento'}<br>
+              💰 Total: R$ ${e.valor.toFixed(2)} • Recebido: R$ ${recebido.toFixed(2)}
+            </div>
+          </div>
+          <span class="badge ${statusClass}">${statusText}</span>
+        </div>
+        <div style="margin: 10px 0;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 14px;">
+            <span>Saldo: R$ ${saldo.toFixed(2)}</span>
+            <span>${percentual}%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: ${percentual}%;">${percentual}%</div>
+          </div>
+        </div>
+        <div class="list-item-actions">
+          <button class="btn btn-sm btn-success" onclick="emitirRecibo('${e.id}')">💵 Receber</button>
+          <button class="btn btn-sm btn-primary" onclick="verEvento('${e.id}')">👁️ Detalhes</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+  
+  document.getElementById('cxTotalReceber').textContent = 'R$ ' + totalReceber.toFixed(2);
+  document.getElementById('cxTotalRecebido').textContent = 'R$ ' + totalRecebido.toFixed(2);
+  
+  container.innerHTML = html || `
+    <div class="empty-state">
+      <div class="empty-state-icon">📭</div>
+      <p>Nenhum evento encontrado</p>
+    </div>
+  `;
+}
+
 // ==================== CONTRATO ====================
 
 function atualizarSelects() {
@@ -2056,99 +2233,87 @@ function carregarDadosContrato() {
     return;
   }
   
+  currentEventoId = id;
   const e = eventos.find(ev => ev.id === id);
   if (!e) return;
   
   const data = new Date(e.data + 'T12:00:00').toLocaleDateString('pt-BR');
   const dataHoje = new Date().toLocaleDateString('pt-BR');
   
-  const enderecoCompleto = `${config.rua}${config.numero ? ', ' + config.numero : ''}${config.complemento ? ' - ' + config.complemento : ''}${config.bairro ? ', ' + config.bairro : ''}${config.cidade ? ', ' + config.cidade : ''}${config.estado ? ' - ' + config.estado : ''}${config.cep ? ' (CEP: ' + config.cep + ')' : ''}`;
+  const enderecoContratado = `${config.rua || ''}${config.numero ? ', ' + config.numero : ''}${config.complemento ? ' - ' + config.complemento : ''}${config.bairro ? ', ' + config.bairro : ''}${config.cidade ? ', ' + config.cidade : ''}${config.estado ? ' - ' + config.estado : ''}`;
+  
+  let equipamentosList = [];
+  if (e.equipamentos) {
+    if (e.equipamentos.som) equipamentosList.push('Sistema de Som completo');
+    if (e.equipamentos.luz) equipamentosList.push('Iluminação profissional');
+    if (e.equipamentos.microfone) equipamentosList.push('Microfones sem fio');
+    if (e.equipamentos.projetor) equipamentosList.push('Projetor e telas');
+    if (e.equipamentos.fumaca) equipamentosList.push('Máquina de fumaça');
+    if (e.equipamentos.bolhas) equipamentosList.push('Máquina de bolhas');
+  }
   
   const contratoHTML = `
-    <div style="text-align: center; margin-bottom: 30px;">
-      <h2 style="color: var(--primary); margin-bottom: 10px;">CONTRATO DE PRESTAÇÃO DE SERVIÇOS</h2>
-      <p style="font-size: 12px; color: #666;">Nº ${e.id.slice(-6)}</p>
-    </div>
+    <h2>CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE DJ</h2>
     
-    <p style="margin-bottom: 15px; text-align: justify;">
-      <strong>CONTRATADO:</strong> ${config.nomeCompleto || config.nome}, ${config.nacionalidade || 'Brasileiro(a)'}, ${config.estadoCivil || ''}, ${config.profissao || 'DJ'}, 
-      portador do CPF: ${config.cpf || 'N/A'}${config.rg ? ', RG: ' + config.rg : ''}, 
-      residente e domiciliado em ${enderecoCompleto || config.cidade || 'N/A'}.
-    </p>
+    <p><strong>CONTRATADO:</strong> ${config.nomeCompleto || config.nome}, ${config.nacionalidade || 'Brasileiro(a)'}, ${config.estadoCivil || ''}, ${config.profissao || 'DJ'}, portador do CPF: ${config.cpf || 'N/A'}${config.rg ? ', RG: ' + config.rg : ''}, residente e domiciliado em ${enderecoContratado || 'N/A'}.</p>
     
-    <p style="margin-bottom: 15px; text-align: justify;">
-      <strong>CONTRATANTE:</strong> ${e.nome}, ${e.estadoCivil || ''}${e.profissao ? ', ' + e.profissao : ''}, 
-      portador do CPF: ${e.cpf || 'N/A'}${e.rg ? ', RG: ' + e.rg : ''}, 
-      residente em ${e.endereco || 'N/A'}, Tel: ${e.telefone}${e.email ? ', Email: ' + e.email : ''}.
-    </p>
+    <p><strong>CONTRATANTE:</strong> ${e.nome}, ${e.estadoCivil || ''}${e.profissao ? ', ' + e.profissao : ''}, portador do CPF: ${e.cpf || 'N/A'}${e.rg ? ', RG: ' + e.rg : ''}, residente em ${e.endereco || 'N/A'}, Tel: ${e.telefone}${e.email ? ', Email: ' + e.email : ''}.</p>
     
-    <p style="margin-bottom: 15px; text-align: justify;">
-      <strong>OBJETO:</strong> Prestação de serviços de DJ para evento de <strong>${e.tipo || 'festa'}</strong>, 
-      a ser realizado no dia <strong>${data}</strong>${e.horaInicio ? ' das ' + e.horaInicio + ' às ' + (e.horaFim || 'término') : ''}, 
-      no local: <strong>${e.local || 'A definir'}</strong>${e.localEndereco ? ', situado em ' + e.localEndereco : ''}.
-    </p>
+    <p><strong>DO EVENTO:</strong> ${e.tipo || 'Evento'} a ser realizado no dia ${data}, no local ${e.local || 'A definir'}${e.localEndereco ? ' - ' + e.localEndereco : ''}. Horário previsto: ${e.horaInicio || 'A definir'} às ${e.horaFim || 'término'}. Serviços contratados: ${equipamentosList.join(', ') || 'DJ e sonorização'}.</p>
     
-    <p style="margin-bottom: 15px; text-align: justify;">
-      <strong>VALOR:</strong> R$ ${e.valor.toFixed(2)} (${valorPorExtenso(e.valor)})
-      ${e.sinal ? '<br><strong>SINAL:</strong> R$ ' + e.sinal.toFixed(2) + ' já pago' : ''}
-      ${e.sinal && e.sinal < e.valor ? '<br><strong>SALDO:</strong> R$ ' + (e.valor - e.sinal).toFixed(2) : ''}
-    </p>
+    <p><strong>CLÁUSULA 1ª - DO OBJETO:</strong> O presente contrato tem por objeto a prestação de serviços de DJ e sonorização para o evento descrito, incluindo montagem, operação e desmontagem do sistema de som e iluminação contratado.</p>
     
-    <p style="margin-bottom: 15px; text-align: justify;">
-      <strong>EQUIPAMENTOS INCLUSOS:</strong><br>
-      ${e.equipamentos ? Object.entries(e.equipamentos).filter(([k,v]) => v).map(([k,v]) => {
-        const labels = {som: 'Sistema de Som', luz: 'Iluminação', microfone: 'Microfones', projetor: 'Projetor/Telas', fumaca: 'Máquina de Fumaça', bolhas: 'Máquina de Bolhas'};
-        return '• ' + labels[k];
-      }).join('<br>') : 'Equipamento padrão'}
-    </p>
+    <p><strong>CLÁUSULA 2ª - DO PAGAMENTO:</strong> O valor total do serviço é de R$ ${e.valor.toFixed(2)} (${valorPorExtenso(e.valor)}), a ser pago da seguinte forma: ${e.formaPagamento || 'A combinar'}. ${e.sinal ? 'Sinal de R$ ' + e.sinal.toFixed(2) + ' já pago.' : ''} O pagamento do sinal caracteriza reserva de data e não será reembolsável em caso de desistência. Cancelamentos com menos de ${config.prazoDesistencia || 7} dias estão sujeitos a multa de ${config.multa || 30}% do valor total.</p>
     
-    <p style="margin-bottom: 15px; text-align: justify;">
-      <strong>CLÁUSULAS:</strong><br>
-      ${(config.clausula || '').replace(/\n/g, '<br>')}
-    </p>
+    <p><strong>CLÁUSULA 3ª - DAS OBRIGAÇÕES DO CONTRATANTE:</strong> Fornecer local adequado, energia elétrica em 220V, estrutura para montagem (mesa/cobertura), segurança dos equipamentos e acesso para carga/descarga. O CONTRATANTE é responsável por obter licenças, alvarás e pagamento de taxas ao ECAD se necessário.</p>
     
-    ${e.observacoes ? `<p style="margin-bottom: 15px; text-align: justify;"><strong>OBSERVAÇÕES ESPECIAIS:</strong> ${e.observacoes}</p>` : ''}
+    <p><strong>CLÁUSULA 4ª - DAS OBRIGAÇÕES DO CONTRATADO:</strong> Comparecer no horário estabelecido, trazer equipamentos em perfeito funcionamento, executar o serviço com profissionalismo e zelar pela boa execução do evento.</p>
     
-    <p style="margin-bottom: 15px; text-align: justify;">
-      <strong>MULTA:</strong> Em caso de desistência, o contratante pagará multa de ${config.multa || 30}% sobre o valor total do contrato.
-    </p>
+    <p><strong>CLÁUSULA 5ª - DO CANCELAMENTO:</strong> Em caso de force majeure (doença comprovada, acidente, desastre natural), o CONTRATADO poderá indicar substituto de igual qualidade ou devolver valores pagos em até 7 dias. O CONTRATANTE pode remarcar uma vez sem custo com ${config.prazoDesistencia || 7} dias de antecedência.</p>
     
-    <div style="margin-top: 50px; display: flex; justify-content: space-between;">
-      <div style="text-align: center; width: 45%;">
-        <div style="border-bottom: 1px solid #333; height: 60px; margin-bottom: 5px;"></div>
-        <p style="font-size: 12px;">
-          <strong>${config.nomeCompleto || config.nome}</strong><br>
-          Contratado<br>
-          <small>CPF: ${config.cpf || 'N/A'}</small>
-        </p>
-      </div>
-      <div style="text-align: center; width: 45%;">
-        <div style="border-bottom: 1px solid #333; height: 60px; margin-bottom: 5px;">
-          ${assinaturas[e.id] ? `<img src="${assinaturas[e.id]}" style="max-height: 58px; max-width: 100%;">` : ''}
+    <p><strong>CLÁUSULA 6ª - DOS EQUIPAMENTOS:</strong> Os equipamentos são de propriedade do CONTRATADO. Danos causados por negligência do CONTRATANTE ou seus convidados serão ressarcidos mediante apresentação de nota fiscal.</p>
+    
+    <p><strong>CLÁUSULA 7ª - DA INTERRUPÇÃO:</strong> O CONTRATADO pode interromper o serviço em caso de: falta de energia por mais de 30 minutos, condições climáticas adversas (eventos ao ar livre), violência ou situações de risco, sem devolução de valores.</p>
+    
+    <p><strong>CLÁUSULA 8ª - DO HORÁRIO:</strong> O atraso superior a 60 minutos do CONTRATANTE não obriga o CONTRATADO a estender o horário contratado. Horas extras serão cobradas conforme valor pré-estabelecido.</p>
+    
+    <p><strong>CLÁUSULA 9ª - DA IMAGEM:</strong> O CONTRATANTE autoriza o uso de imagens do evento para portfólio e divulgação do CONTRATADO, exceto mediante solicitação expressa em contrário por escrito.</p>
+    
+    <p><strong>CLÁUSULA 10ª - DO FORO:</strong> Fica eleito o foro da comarca de ${config.cidade || 'N/A'}/${config.estado || 'SP'} para dirimir quaisquer controvérsias, com renúncia a qualquer outro, por mais privilegiado que seja.</p>
+    
+    <p><strong>CLÁUSULA 11ª - DISPOSIÇÕES GERAIS:</strong> Este contrato pode ser assinado digitalmente ou fisicamente, tendo ambas as formas igual validade jurídica. A tolerância de qualquer das partes quanto ao descumprimento não implicará em renúncia ou novação.</p>
+    
+    ${e.observacoes ? `<p><strong>OBSERVAÇÕES:</strong> ${e.observacoes}</p>` : ''}
+    
+    <p style="margin-top: 30px;">${config.cidade || 'N/A'}/${config.estado || 'SP'}, ${dataHoje}.</p>
+    
+    <div class="signature-area">
+      <div class="signature-box">
+        <div class="signature-line" id="assinaturaContratado">
+          ${assinaturas[id] ? `<img src="${assinaturas[id]}" style="max-height: 55px; max-width: 90%;">` : ''}
         </div>
-        <p style="font-size: 12px;">
-          <strong>${e.nome}</strong><br>
-          Contratante<br>
-          <small>CPF: ${e.cpf || 'N/A'}</small><br>
-          <small>Assinado digitalmente em ${dataHoje}</small>
-        </p>
+        <p><strong>${e.nome}</strong><br>CONTRATANTE<br><small>CPF: ${e.cpf || 'N/A'}</small></p>
       </div>
-    </div>
-    
-    <div style="margin-top: 30px; text-align: center; font-size: 11px; color: #999;">
-      Documento gerado por ${config.nome} - ${dataHoje}<br>
-      ${config.telefone} | ${config.email}${config.instagram ? ' | ' + config.instagram : ''}
+      <div class="signature-box">
+        <div class="signature-line"></div>
+        <p><strong>${config.nomeCompleto || config.nome}</strong><br>CONTRATADO<br><small>CPF: ${config.cpf || 'N/A'}</small></p>
+      </div>
     </div>
   `;
   
-  document.getElementById('previewContrato').innerHTML = contratoHTML;
+  document.getElementById('contractPrintArea').innerHTML = contratoHTML;
   document.getElementById('areaContrato').style.display = 'block';
+  
+  // Reinicializar canvas quando mostrar área de contrato
+  setTimeout(initCanvas, 100);
 }
 
 function gerarContrato(id) {
-  document.getElementById('contrato_evento').value = id;
-  carregarDadosContrato();
   showTab('contrato');
+  setTimeout(() => {
+    document.getElementById('contrato_evento').value = id;
+    carregarDadosContrato();
+  }, 100);
 }
 
 function imprimirContrato() {
@@ -2156,15 +2321,15 @@ function imprimirContrato() {
 }
 
 function compartilharContrato() {
-  const preview = document.getElementById('previewContrato').innerText;
+  const preview = document.getElementById('contractPrintArea').innerText;
   if (navigator.share) {
     navigator.share({
       title: 'Contrato de Serviços',
-      text: preview.substring(0, 200) + '...'
+      text: preview.substring(0, 500) + '...'
     });
   } else {
-    showToast('📋 Contrato copiado!');
     navigator.clipboard.writeText(preview);
+    showToast('📋 Contrato copiado!');
   }
 }
 
@@ -2174,46 +2339,82 @@ function initCanvas() {
   canvas = document.getElementById('assinaturaCanvas');
   if (!canvas) return;
   
-  ctx = canvas.getContext('2d');
-  canvas.width = canvas.offsetWidth;
-  canvas.height = canvas.offsetHeight;
+  // Ajustar tamanho do canvas
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width - 20;
+  canvas.height = 200;
   
+  ctx = canvas.getContext('2d');
   ctx.strokeStyle = '#000';
   ctx.lineWidth = 2;
   ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
   
+  // Limpar eventos anteriores
+  canvas.removeEventListener('mousedown', startDrawing);
+  canvas.removeEventListener('mousemove', draw);
+  canvas.removeEventListener('mouseup', stopDrawing);
+  canvas.removeEventListener('mouseout', stopDrawing);
+  canvas.removeEventListener('touchstart', handleTouchStart);
+  canvas.removeEventListener('touchmove', handleTouchMove);
+  canvas.removeEventListener('touchend', stopDrawing);
+  
+  // Adicionar eventos
   canvas.addEventListener('mousedown', startDrawing);
   canvas.addEventListener('mousemove', draw);
   canvas.addEventListener('mouseup', stopDrawing);
   canvas.addEventListener('mouseout', stopDrawing);
   
-  canvas.addEventListener('touchstart', handleTouch);
-  canvas.addEventListener('touchmove', handleTouch);
+  canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+  canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
   canvas.addEventListener('touchend', stopDrawing);
+}
+
+function getPos(e) {
+  const rect = canvas.getBoundingClientRect();
+  const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+  const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+  return {
+    x: clientX - rect.left,
+    y: clientY - rect.top
+  };
 }
 
 function startDrawing(e) {
   isDrawing = true;
-  const rect = canvas.getBoundingClientRect();
+  const pos = getPos(e);
   ctx.beginPath();
-  ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+  ctx.moveTo(pos.x, pos.y);
+  e.preventDefault();
 }
 
 function draw(e) {
   if (!isDrawing) return;
-  const rect = canvas.getBoundingClientRect();
-  ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+  const pos = getPos(e);
+  ctx.lineTo(pos.x, pos.y);
   ctx.stroke();
+  e.preventDefault();
 }
 
-function stopDrawing() {
+function stopDrawing(e) {
   isDrawing = false;
+  if (e) e.preventDefault();
 }
 
-function handleTouch(e) {
+function handleTouchStart(e) {
   e.preventDefault();
   const touch = e.touches[0];
-  const mouseEvent = new MouseEvent(e.type === 'touchstart' ? 'mousedown' : 'mousemove', {
+  const mouseEvent = new MouseEvent('mousedown', {
+    clientX: touch.clientX,
+    clientY: touch.clientY
+  });
+  canvas.dispatchEvent(mouseEvent);
+}
+
+function handleTouchMove(e) {
+  e.preventDefault();
+  const touch = e.touches[0];
+  const mouseEvent = new MouseEvent('mousemove', {
     clientX: touch.clientX,
     clientY: touch.clientY
   });
@@ -2221,30 +2422,94 @@ function handleTouch(e) {
 }
 
 function limparAssinatura() {
+  if (!ctx || !canvas) return;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
 function salvarAssinatura() {
-  const id = document.getElementById('contrato_evento').value;
-  if (!id) return;
+  if (!currentEventoId) {
+    showToast('❌ Selecione um evento primeiro!', 'error');
+    return;
+  }
   
-  assinaturas[id] = canvas.toDataURL();
+  if (!ctx || !canvas) {
+    showToast('❌ Erro no canvas!', 'error');
+    return;
+  }
+  
+  // Verificar se tem assinatura (checar se não está vazio)
+  const pixelBuffer = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+  const hasSignature = pixelBuffer.some((pixel, index) => index % 4 !== 3 && pixel !== 0);
+  
+  if (!hasSignature) {
+    showToast('❌ Faça a assinatura primeiro!', 'error');
+    return;
+  }
+  
+  assinaturas[currentEventoId] = canvas.toDataURL('image/png');
   salvarDados();
-  carregarDadosContrato();
-  showToast('✅ Assinatura salva!');
+  
+  // Atualizar preview do contrato com a assinatura
+  const assinaturaDiv = document.getElementById('assinaturaContratado');
+  if (assinaturaDiv) {
+    assinaturaDiv.innerHTML = `<img src="${assinaturas[currentEventoId]}" style="max-height: 55px; max-width: 90%;">`;
+  }
+  
+  showToast('✅ Assinatura salva com sucesso!');
 }
 
-// ==================== RECIBOS ====================
+// ==================== RECIBOS COM CONTROLE FINANCEIRO ====================
 
 function carregarDadosRecibo() {
   const id = document.getElementById('recibo_evento').value;
-  if (!id) return;
+  const resumoDiv = document.getElementById('resumoFinanceiro');
+  
+  if (!id) {
+    resumoDiv.style.display = 'none';
+    return;
+  }
   
   const e = eventos.find(ev => ev.id === id);
   if (!e) return;
   
-  document.getElementById('recibo_valor').value = e.valor;
+  const totalRecebido = calcularTotalRecebido(id);
+  const saldo = e.valor - totalRecebido;
+  const percentual = Math.round((totalRecebido / e.valor) * 100);
+  
+  // Atualizar resumo financeiro
+  document.getElementById('finTotal').textContent = 'R$ ' + e.valor.toFixed(2);
+  document.getElementById('finRecebido').textContent = 'R$ ' + totalRecebido.toFixed(2);
+  document.getElementById('finSaldo').textContent = 'R$ ' + saldo.toFixed(2);
+  document.getElementById('finProgresso').style.width = percentual + '%';
+  document.getElementById('finProgresso').textContent = percentual + '%';
+  
+  let statusText = '';
+  if (saldo <= 0) statusText = '✅ Evento Quitado';
+  else if (totalRecebido > 0) statusText = '💵 Parcialmente Pago';
+  else statusText = '⏳ Pendente';
+  document.getElementById('finStatus').textContent = 'Status: ' + statusText;
+  
+  // Preencher campos
+  document.getElementById('recibo_valor').value = saldo > 0 ? saldo.toFixed(2) : '';
   document.getElementById('recibo_referente').value = `Serviços de DJ - ${e.tipo || 'Evento'}`;
+  document.getElementById('valorMaximo').textContent = 'R$ ' + saldo.toFixed(2);
+  
+  resumoDiv.style.display = 'block';
+}
+
+function validarValorRecibo() {
+  const id = document.getElementById('recibo_evento').value;
+  if (!id) return;
+  
+  const e = eventos.find(ev => ev.id === id);
+  const valorInput = parseFloat(document.getElementById('recibo_valor').value) || 0;
+  const totalRecebido = calcularTotalRecebido(id);
+  const saldo = e.valor - totalRecebido;
+  
+  if (valorInput > saldo) {
+    showToast('⚠️ Valor maior que o saldo devedor!', 'warning');
+    document.getElementById('recibo_valor').value = saldo.toFixed(2);
+  }
 }
 
 function gerarRecibo() {
@@ -2260,36 +2525,50 @@ function gerarRecibo() {
   }
   
   const e = eventos.find(ev => ev.id === id);
+  const totalRecebido = calcularTotalRecebido(id) + valor;
+  const saldo = e.valor - totalRecebido;
+  
   const reciboHTML = `
-    <div style="border: 2px solid #333; padding: 30px; max-width: 600px; margin: 0 auto; background: white; color: black;">
+    <div style="border: 2px solid #333; padding: 30px; max-width: 600px; margin: 0 auto; background: white; color: black; font-family: Arial, sans-serif;">
       <div style="text-align: center; margin-bottom: 20px;">
-        <h2 style="margin: 0; color: black;">RECIBO</h2>
+        <h2 style="margin: 0; color: black; font-size: 28px;">RECIBO</h2>
         <p style="margin: 5px 0; font-size: 24px; font-weight: bold; color: black;">Nº ${Date.now().toString().slice(-6)}</p>
       </div>
       
       <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px; color: black; text-align: justify;">
         Eu, <strong>${config.nomeCompleto || config.nome}</strong>, ${config.cpf ? 'CPF: ' + config.cpf : ''}, 
-        declaro que RECEBI de <strong>${e.nome}</strong>, ${e.cpf ? 'CPF: ' + e.cpf : ''}, 
+        declaro que RECEBI de <strong>${e.nome}</strong>${e.cpf ? ', CPF: ' + e.cpf : ''}, 
         a importância de <strong>R$ ${valor.toFixed(2)}</strong> (${valorPorExtenso(valor)}), 
         referente a ${referente || 'serviços de DJ'}.
       </p>
       
-      <p style="font-size: 16px; margin-bottom: 20px; color: black;">
-        <strong>Evento:</strong> ${e.tipo || 'Evento'}<br>
-        <strong>Data do evento:</strong> ${new Date(e.data).toLocaleDateString('pt-BR')}<br>
-        <strong>Forma de pagamento:</strong> ${forma}<br>
-        <strong>Data do pagamento:</strong> ${new Date(data).toLocaleDateString('pt-BR')}
-      </p>
+      <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <p style="font-size: 14px; margin: 5px 0; color: black;">
+          <strong>Evento:</strong> ${e.tipo || 'Evento'}<br>
+          <strong>Data do evento:</strong> ${new Date(e.data).toLocaleDateString('pt-BR')}<br>
+          <strong>Forma de pagamento:</strong> ${forma}<br>
+          <strong>Data do pagamento:</strong> ${new Date(data).toLocaleDateString('pt-BR')}
+        </p>
+      </div>
+      
+      <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #4caf50;">
+        <p style="font-size: 14px; margin: 5px 0; color: black;">
+          <strong>Resumo Financeiro:</strong><br>
+          Valor Total: R$ ${e.valor.toFixed(2)}<br>
+          Total Recebido: R$ ${totalRecebido.toFixed(2)}<br>
+          <strong>Saldo Devedor: R$ ${saldo.toFixed(2)}</strong>
+        </p>
+      </div>
       
       <div style="margin-top: 40px; text-align: center;">
         <div style="border-top: 1px solid #333; display: inline-block; padding-top: 10px; min-width: 300px;">
-          <strong style="color: black;">${config.nomeCompleto || config.nome}</strong><br>
+          <strong style="color: black; font-size: 16px;">${config.nomeCompleto || config.nome}</strong><br>
           <small style="color: #666;">${config.cpf || ''}</small>
         </div>
       </div>
       
-      <div style="margin-top: 30px; text-align: center; font-size: 11px; color: #666;">
-        ${config.rua ? config.rua + ', ' : ''}${config.numero || ''}${config.complemento ? ' - ' + config.complemento : ''}<br>
+      <div style="margin-top: 30px; text-align: center; font-size: 11px; color: #666; border-top: 1px solid #ddd; padding-top: 15px;">
+        ${config.rua ? config.rua + ', ' : ''}${config.numero || ''}<br>
         ${config.bairro ? config.bairro + ' - ' : ''}${config.cidade || ''}${config.estado ? '/' + config.estado : ''}<br>
         ${config.telefone}${config.email ? ' | ' + config.email : ''}<br>
         ${config.instagram ? config.instagram : ''}
@@ -2314,6 +2593,13 @@ function salvarRecibo() {
   }
   
   const e = eventos.find(ev => ev.id === id);
+  const totalRecebido = calcularTotalRecebido(id);
+  
+  if (totalRecebido + valor > e.valor) {
+    showToast('❌ Valor excede o total do evento!', 'error');
+    return;
+  }
+  
   const recibo = {
     id: Date.now().toString(),
     eventoId: id,
@@ -2329,19 +2615,27 @@ function salvarRecibo() {
   salvarDados();
   renderizarRecibos();
   atualizarDashboard();
+  renderizarCaixa();
   
-  showToast('✅ Recibo salvo com sucesso!');
+  const novoTotal = totalRecebido + valor;
+  const saldo = e.valor - novoTotal;
   
+  showToast(`✅ Recibo salvo! ${saldo <= 0 ? 'Evento quitado!' : 'Saldo: R$ ' + saldo.toFixed(2)}`);
+  
+  // Limpar formulário
   document.getElementById('recibo_evento').value = '';
   document.getElementById('recibo_valor').value = '';
   document.getElementById('recibo_referente').value = '';
   document.getElementById('previewRecibo').style.display = 'none';
+  document.getElementById('resumoFinanceiro').style.display = 'none';
 }
 
 function emitirRecibo(id) {
-  document.getElementById('recibo_evento').value = id;
-  carregarDadosRecibo();
   showTab('recibo');
+  setTimeout(() => {
+    document.getElementById('recibo_evento').value = id;
+    carregarDadosRecibo();
+  }, 100);
 }
 
 function renderizarRecibos() {
@@ -2359,24 +2653,31 @@ function renderizarRecibos() {
   
   const sorted = [...recibos].sort((a, b) => new Date(b.dataEmissao) - new Date(a.dataEmissao));
   
-  container.innerHTML = sorted.map(r => `
-    <div class="list-item">
-      <div class="list-item-header">
-        <div>
-          <div class="list-item-title">Recibo Nº ${r.id.slice(-6)}</div>
-          <div class="list-item-meta">
-            Cliente: ${r.cliente}<br>
-            Data: ${new Date(r.data).toLocaleDateString('pt-BR')} • ${r.forma}
+  container.innerHTML = sorted.map(r => {
+    const e = eventos.find(ev => ev.id === r.eventoId);
+    const totalEvento = e ? e.valor : 0;
+    const totalRecebido = calcularTotalRecebido(r.eventoId);
+    const status = totalRecebido >= totalEvento ? '✅' : '💵';
+    
+    return `
+      <div class="list-item">
+        <div class="list-item-header">
+          <div>
+            <div class="list-item-title">${status} Recibo Nº ${r.id.slice(-6)}</div>
+            <div class="list-item-meta">
+              Cliente: ${r.cliente}<br>
+              Data: ${new Date(r.data).toLocaleDateString('pt-BR')} • ${r.forma}
+            </div>
           </div>
+          <span class="badge badge-success">R$ ${r.valor.toFixed(2)}</span>
         </div>
-        <span class="badge badge-success">R$ ${r.valor.toFixed(2)}</span>
+        <div class="list-item-actions">
+          <button class="btn btn-sm btn-primary" onclick="verRecibo('${r.id}')">👁️ Visualizar</button>
+          <button class="btn btn-sm btn-secondary" onclick="compartilharRecibo('${r.id}')">📤 Compartilhar</button>
+        </div>
       </div>
-      <div class="list-item-actions">
-        <button class="btn btn-sm btn-primary" onclick="verRecibo('${r.id}')">👁️ Visualizar</button>
-        <button class="btn btn-sm btn-secondary" onclick="compartilharRecibo('${r.id}')">📤 Compartilhar</button>
-      </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 function verRecibo(id) {
@@ -2384,10 +2685,13 @@ function verRecibo(id) {
   if (!r) return;
   
   const e = eventos.find(ev => ev.id === r.eventoId);
+  const totalRecebido = calcularTotalRecebido(r.eventoId);
+  const saldo = e.valor - totalRecebido;
+  
   const html = `
-    <div style="border: 2px solid #333; padding: 30px; max-width: 600px; margin: 0 auto; background: white; color: black;">
+    <div style="border: 2px solid #333; padding: 30px; max-width: 600px; margin: 0 auto; background: white; color: black; font-family: Arial, sans-serif;">
       <div style="text-align: center; margin-bottom: 20px;">
-        <h2 style="margin: 0; color: black;">RECIBO</h2>
+        <h2 style="margin: 0; color: black; font-size: 28px;">RECIBO</h2>
         <p style="margin: 5px 0; font-size: 24px; font-weight: bold; color: black;">Nº ${r.id.slice(-6)}</p>
       </div>
       
@@ -2398,10 +2702,23 @@ function verRecibo(id) {
         referente a ${r.referente || 'serviços de DJ'}.
       </p>
       
-      <p style="font-size: 16px; margin-bottom: 20px; color: black;">
-        <strong>Forma de pagamento:</strong> ${r.forma}<br>
-        <strong>Data do pagamento:</strong> ${new Date(r.data).toLocaleDateString('pt-BR')}
-      </p>
+      <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <p style="font-size: 14px; margin: 5px 0; color: black;">
+          <strong>Forma de pagamento:</strong> ${r.forma}<br>
+          <strong>Data do pagamento:</strong> ${new Date(r.data).toLocaleDateString('pt-BR')}
+        </p>
+      </div>
+      
+      ${e ? `
+      <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #4caf50;">
+        <p style="font-size: 14px; margin: 5px 0; color: black;">
+          <strong>Resumo do Evento:</strong><br>
+          Valor Total: R$ ${e.valor.toFixed(2)}<br>
+          Total Recebido: R$ ${totalRecebido.toFixed(2)}<br>
+          <strong>Saldo: R$ ${saldo.toFixed(2)}</strong>
+        </p>
+      </div>
+      ` : ''}
       
       <div style="margin-top: 40px; text-align: center;">
         <div style="border-top: 1px solid #333; display: inline-block; padding-top: 10px; min-width: 300px;">
@@ -2422,7 +2739,16 @@ function compartilharRecibo(id) {
   const r = recibos.find(rec => rec.id === id);
   if (!r) return;
   
-  const texto = `Recibo Nº ${r.id.slice(-6)} - ${config.nome}\nCliente: ${r.cliente}\nValor: R$ ${r.valor.toFixed(2)}\nData: ${new Date(r.data).toLocaleDateString('pt-BR')}`;
+  const e = eventos.find(ev => ev.id === r.eventoId);
+  const totalRecebido = calcularTotalRecebido(r.eventoId);
+  const saldo = e ? e.valor - totalRecebido : 0;
+  
+  const texto = `*Recibo Nº ${r.id.slice(-6)} - ${config.nome}*\n\n` +
+    `Cliente: ${r.cliente}\n` +
+    `Valor: R$ ${r.valor.toFixed(2)}\n` +
+    `Data: ${new Date(r.data).toLocaleDateString('pt-BR')}\n` +
+    `Forma: ${r.forma}\n\n` +
+    `${e ? `*Resumo do Evento:*\nTotal: R$ ${e.valor.toFixed(2)}\nRecebido: R$ ${totalRecebido.toFixed(2)}\nSaldo: R$ ${saldo.toFixed(2)}` : ''}`;
   
   if (navigator.share) {
     navigator.share({
@@ -2450,7 +2776,6 @@ function valorPorExtenso(valor) {
   
   let extenso = '';
   
-  // Milhares
   if (inteiro >= 1000) {
     const milhares = Math.floor(inteiro / 1000);
     if (milhares === 1) extenso += 'mil ';
@@ -2463,7 +2788,6 @@ function valorPorExtenso(valor) {
     }
   }
   
-  // Centenas
   const resto = inteiro % 1000;
   if (resto >= 100) {
     const c = Math.floor(resto / 100);
@@ -2472,7 +2796,6 @@ function valorPorExtenso(valor) {
     extenso += centenas[c - 1] + (restoCentena > 0 ? ' e ' : ' ');
   }
   
-  // Dezenas e unidades
   const du = resto % 100;
   if (du > 0) {
     if (extenso && !extenso.endsWith('e ')) extenso += 'e ';
