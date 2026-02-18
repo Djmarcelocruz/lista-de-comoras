@@ -311,74 +311,145 @@
   .badge-danger { background: #f8d7da; color: #721c24; }
   .badge-info { background: #d1ecf1; color: #0c5460; }
 
-  /* Container do contrato para impressão - apenas o conteúdo interno */
-  .contract-print-area {
+  /* ÁREA DO CONTRATO - Apenas esta parte aparece na impressão */
+  #contractPrintArea {
     background: white;
     color: black;
     padding: 40px;
     font-family: 'Times New Roman', Times, serif;
-    line-height: 1.6;
+    line-height: 1.8;
     font-size: 14px;
+    max-width: 800px;
+    margin: 0 auto;
   }
 
-  .contract-print-area h2 {
+  #contractPrintArea h2 {
     color: black;
     text-align: center;
     margin-bottom: 30px;
-    font-size: 24px;
+    font-size: 22px;
+    font-weight: bold;
+    text-transform: uppercase;
   }
 
-  .contract-print-area p {
+  #contractPrintArea p {
     margin-bottom: 15px;
     text-align: justify;
+    color: black;
   }
 
-  .contract-print-area .signature-area {
-    margin-top: 50px;
+  #contractPrintArea strong {
+    color: black;
+  }
+
+  #contractPrintArea .signature-area {
+    margin-top: 60px;
     display: flex;
     justify-content: space-between;
+    gap: 40px;
   }
 
-  .contract-print-area .signature-box {
+  #contractPrintArea .signature-box {
     text-align: center;
-    width: 45%;
+    flex: 1;
   }
 
-  .contract-print-area .signature-line {
+  #contractPrintArea .signature-line {
     border-top: 1px solid #333;
-    height: 60px;
-    margin-bottom: 5px;
+    height: 80px;
+    margin-bottom: 10px;
     display: flex;
     align-items: flex-end;
     justify-content: center;
+    padding-bottom: 5px;
   }
 
-  .document-preview {
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 12px;
-    padding: 30px;
-    margin: 20px 0;
-    max-height: 500px;
-    overflow-y: auto;
+  /* Controles do contrato - NÃO aparecem na impressão */
+  .contract-controls {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
   }
 
   .signature-pad-container {
-    background: white;
-    border: 2px solid var(--border);
-    border-radius: 12px;
-    padding: 10px;
-    margin: 15px 0;
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-top: 20px;
+    box-shadow: var(--shadow);
   }
 
   .signature-pad {
     background: white;
-    border: 1px solid #ccc;
+    border: 2px solid #333;
     border-radius: 8px;
     width: 100%;
-    height: 200px;
+    height: 250px;
     touch-action: none;
     cursor: crosshair;
+    display: block;
+  }
+
+  /* CSS CRÍTICO PARA IMPRESSÃO - Esconde TUDO exceto o contrato */
+  @media print {
+    * {
+      visibility: hidden !important;
+    }
+    
+    html, body {
+      background: white !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+    
+    #contractPrintArea,
+    #contractPrintArea * {
+      visibility: visible !important;
+      color: black !important;
+      background: white !important;
+      box-shadow: none !important;
+      border: none !important;
+    }
+    
+    #contractPrintArea {
+      position: absolute !important;
+      left: 0 !important;
+      top: 0 !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      padding: 20px !important;
+      margin: 0 !important;
+      display: block !important;
+    }
+    
+    #contractPrintArea h2 {
+      font-size: 18px !important;
+      margin-bottom: 20px !important;
+    }
+    
+    #contractPrintArea p {
+      font-size: 12px !important;
+      line-height: 1.6 !important;
+      margin-bottom: 10px !important;
+    }
+    
+    #contractPrintArea .signature-area {
+      margin-top: 40px !important;
+    }
+    
+    .app-header, 
+    .bottom-nav, 
+    .contract-controls,
+    .signature-pad-container,
+    .btn,
+    .card:not(#contractPrintArea),
+    .section:not(#contrato),
+    #contrato > *:not(#contractPrintArea) {
+      display: none !important;
+      visibility: hidden !important;
+    }
   }
 
   .modal-overlay {
@@ -608,38 +679,6 @@
     font-weight: 600;
   }
 
-  /* CSS específico para impressão - esconde tudo exceto o contrato */
-  @media print {
-    body * {
-      visibility: hidden;
-    }
-    
-    .contract-print-area,
-    .contract-print-area * {
-      visibility: visible;
-    }
-    
-    .contract-print-area {
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 100%;
-      padding: 20px;
-      margin: 0;
-      border: none;
-      max-height: none;
-      overflow: visible;
-    }
-    
-    .no-print,
-    .app-header,
-    .bottom-nav,
-    .signature-pad-container,
-    .btn {
-      display: none !important;
-    }
-  }
-
   @media (min-width: 1024px) {
     .main-content { max-width: 1000px; }
     .bottom-nav { display: none; }
@@ -652,6 +691,7 @@
     .stat-value { font-size: 24px; }
     .btn { padding: 12px 20px; }
     .form-row { grid-template-columns: 1fr; }
+    #contractPrintArea { padding: 20px; }
   }
 
   @supports (padding-top: env(safe-area-inset-top)) {
@@ -695,7 +735,7 @@
 </div>
 
 <!-- HEADER -->
-<header class="app-header no-print">
+<header class="app-header">
   <h1>🎧 <span id="appTitle">DJ Pro</span></h1>
   <div class="header-actions">
     <button class="header-btn" onclick="showModal('config')" title="Configurações">⚙️</button>
@@ -972,7 +1012,8 @@
 
 <!-- CONTRATO -->
 <section id="contrato" class="section">
-  <div class="card no-print">
+  <!-- Controles - NÃO aparecem na impressão -->
+  <div class="contract-controls">
     <div class="card-title">📄 Gerar Contrato</div>
     
     <div class="form-group">
@@ -983,22 +1024,23 @@
     </div>
   </div>
 
-  <div id="areaContrato" style="display: none;">
-    <!-- Área de impressão - apenas o contrato -->
-    <div id="contractPrintArea" class="contract-print-area">
-      <!-- Conteúdo do contrato será inserido aqui -->
-    </div>
-    
-    <!-- Controles de assinatura - não aparecem na impressão -->
-    <div class="card signature-pad-container no-print">
-      <div class="card-title">✍️ Assinatura Digital do Cliente</div>
-      <canvas id="assinaturaCanvas" class="signature-pad"></canvas>
-      <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
-        <button class="btn btn-sm btn-secondary" onclick="limparAssinatura()">🧹 Limpar</button>
-        <button class="btn btn-sm btn-success" onclick="salvarAssinatura()">💾 Salvar Assinatura</button>
-        <button class="btn btn-sm btn-primary" onclick="imprimirContrato()">🖨️ Imprimir / PDF</button>
-        <button class="btn btn-sm btn-success" onclick="compartilharContrato()">📤 Compartilhar</button>
-      </div>
+  <!-- ÁREA DE IMPRESSÃO - Apenas isto aparece no PDF -->
+  <div id="contractPrintArea" style="display: none;">
+    <!-- Conteúdo do contrato inserido via JS -->
+  </div>
+
+  <!-- Assinatura Digital - NÃO aparece na impressão -->
+  <div id="assinaturaContainer" class="signature-pad-container" style="display: none;">
+    <div class="card-title">✍️ Assinatura Digital do Cliente</div>
+    <p style="color: var(--text-muted); margin-bottom: 10px; font-size: 14px;">
+      Peça para o cliente assinar no quadro abaixo com o dedo ou caneta:
+    </p>
+    <canvas id="assinaturaCanvas" class="signature-pad"></canvas>
+    <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+      <button class="btn btn-sm btn-secondary" onclick="limparAssinatura()">🧹 Limpar</button>
+      <button class="btn btn-sm btn-success" onclick="salvarAssinatura()">💾 Salvar Assinatura</button>
+      <button class="btn btn-sm btn-primary" onclick="imprimirContrato()">🖨️ Imprimir / PDF</button>
+      <button class="btn btn-sm btn-success" onclick="compartilharContrato()">📤 Compartilhar</button>
     </div>
   </div>
 </section>
@@ -1491,7 +1533,7 @@
 </main>
 
 <!-- NAVEGAÇÃO INFERIOR -->
-<nav class="bottom-nav no-print">
+<nav class="bottom-nav">
   <button class="nav-item active" onclick="showTab('dashboard')">
     <span class="icon">📊</span>
     <span>Início</span>
@@ -1601,7 +1643,6 @@ let currentEventoId = null;
 document.addEventListener('DOMContentLoaded', function() {
   carregarDados();
   verificarPin();
-  initCanvas();
   atualizarDashboard();
   atualizarSelects();
   renderizarEventos();
@@ -2166,7 +2207,6 @@ function renderizarCaixa() {
     totalReceber += saldo;
     totalRecebido += recebido;
     
-    // Filtros
     if (filtro === 'pendente' && recebido > 0) return '';
     if (filtro === 'pago' && saldo > 0) return '';
     if (filtro === 'parcial' && (recebido === 0 || saldo === 0)) return '';
@@ -2228,8 +2268,10 @@ function atualizarSelects() {
 
 function carregarDadosContrato() {
   const id = document.getElementById('contrato_evento').value;
+  
   if (!id) {
-    document.getElementById('areaContrato').style.display = 'none';
+    document.getElementById('contractPrintArea').style.display = 'none';
+    document.getElementById('assinaturaContainer').style.display = 'none';
     return;
   }
   
@@ -2290,7 +2332,7 @@ function carregarDadosContrato() {
     <div class="signature-area">
       <div class="signature-box">
         <div class="signature-line" id="assinaturaContratado">
-          ${assinaturas[id] ? `<img src="${assinaturas[id]}" style="max-height: 55px; max-width: 90%;">` : ''}
+          ${assinaturas[id] ? `<img src="${assinaturas[id]}" style="max-height: 75px; max-width: 90%;">` : ''}
         </div>
         <p><strong>${e.nome}</strong><br>CONTRATANTE<br><small>CPF: ${e.cpf || 'N/A'}</small></p>
       </div>
@@ -2302,9 +2344,10 @@ function carregarDadosContrato() {
   `;
   
   document.getElementById('contractPrintArea').innerHTML = contratoHTML;
-  document.getElementById('areaContrato').style.display = 'block';
+  document.getElementById('contractPrintArea').style.display = 'block';
+  document.getElementById('assinaturaContainer').style.display = 'block';
   
-  // Reinicializar canvas quando mostrar área de contrato
+  // Inicializar canvas após mostrar o container
   setTimeout(initCanvas, 100);
 }
 
@@ -2333,97 +2376,134 @@ function compartilharContrato() {
   }
 }
 
-// ==================== ASSINATURA DIGITAL ====================
+// ==================== ASSINATURA DIGITAL - VERSÃO CORRIGIDA ====================
 
 function initCanvas() {
   canvas = document.getElementById('assinaturaCanvas');
-  if (!canvas) return;
+  if (!canvas) {
+    console.error('Canvas não encontrado');
+    return;
+  }
   
-  // Ajustar tamanho do canvas
-  const rect = canvas.parentElement.getBoundingClientRect();
-  canvas.width = rect.width - 20;
-  canvas.height = 200;
+  // Configurar tamanho do canvas
+  const container = canvas.parentElement;
+  const rect = container.getBoundingClientRect();
   
+  // Definir tamanho considerando padding
+  canvas.width = rect.width - 40;
+  canvas.height = 250;
+  
+  // Obter contexto
   ctx = canvas.getContext('2d');
-  ctx.strokeStyle = '#000';
-  ctx.lineWidth = 2;
+  
+  // Configurar estilo da linha
+  ctx.strokeStyle = '#000000';
+  ctx.lineWidth = 3;
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
   
-  // Limpar eventos anteriores
-  canvas.removeEventListener('mousedown', startDrawing);
-  canvas.removeEventListener('mousemove', draw);
-  canvas.removeEventListener('mouseup', stopDrawing);
-  canvas.removeEventListener('mouseout', stopDrawing);
+  // Limpar canvas
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // Remover eventos antigos para evitar duplicação
+  canvas.removeEventListener('mousedown', handleMouseDown);
+  canvas.removeEventListener('mousemove', handleMouseMove);
+  canvas.removeEventListener('mouseup', handleMouseUp);
+  canvas.removeEventListener('mouseout', handleMouseUp);
   canvas.removeEventListener('touchstart', handleTouchStart);
   canvas.removeEventListener('touchmove', handleTouchMove);
-  canvas.removeEventListener('touchend', stopDrawing);
+  canvas.removeEventListener('touchend', handleTouchEnd);
   
-  // Adicionar eventos
-  canvas.addEventListener('mousedown', startDrawing);
-  canvas.addEventListener('mousemove', draw);
-  canvas.addEventListener('mouseup', stopDrawing);
-  canvas.addEventListener('mouseout', stopDrawing);
+  // Adicionar novos eventos
+  canvas.addEventListener('mousedown', handleMouseDown);
+  canvas.addEventListener('mousemove', handleMouseMove);
+  canvas.addEventListener('mouseup', handleMouseUp);
+  canvas.addEventListener('mouseout', handleMouseUp);
   
   canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
   canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
-  canvas.addEventListener('touchend', stopDrawing);
+  canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
+  
+  console.log('Canvas inicializado:', canvas.width, 'x', canvas.height);
 }
 
-function getPos(e) {
+function getCanvasPos(e) {
   const rect = canvas.getBoundingClientRect();
-  const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-  const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+  let clientX, clientY;
+  
+  if (e.touches && e.touches.length > 0) {
+    clientX = e.touches[0].clientX;
+    clientY = e.touches[0].clientY;
+  } else {
+    clientX = e.clientX;
+    clientY = e.clientY;
+  }
+  
   return {
     x: clientX - rect.left,
     y: clientY - rect.top
   };
 }
 
-function startDrawing(e) {
+function handleMouseDown(e) {
+  e.preventDefault();
   isDrawing = true;
-  const pos = getPos(e);
+  const pos = getCanvasPos(e);
   ctx.beginPath();
   ctx.moveTo(pos.x, pos.y);
-  e.preventDefault();
+  console.log('Mouse down:', pos.x, pos.y);
 }
 
-function draw(e) {
+function handleMouseMove(e) {
   if (!isDrawing) return;
-  const pos = getPos(e);
+  e.preventDefault();
+  const pos = getCanvasPos(e);
   ctx.lineTo(pos.x, pos.y);
   ctx.stroke();
-  e.preventDefault();
 }
 
-function stopDrawing(e) {
+function handleMouseUp(e) {
+  if (!isDrawing) return;
+  e.preventDefault();
   isDrawing = false;
-  if (e) e.preventDefault();
+  ctx.closePath();
+  console.log('Mouse up - desenho finalizado');
 }
 
 function handleTouchStart(e) {
   e.preventDefault();
-  const touch = e.touches[0];
-  const mouseEvent = new MouseEvent('mousedown', {
-    clientX: touch.clientX,
-    clientY: touch.clientY
-  });
-  canvas.dispatchEvent(mouseEvent);
+  isDrawing = true;
+  const pos = getCanvasPos(e);
+  ctx.beginPath();
+  ctx.moveTo(pos.x, pos.y);
+  console.log('Touch start:', pos.x, pos.y);
 }
 
 function handleTouchMove(e) {
+  if (!isDrawing) return;
   e.preventDefault();
-  const touch = e.touches[0];
-  const mouseEvent = new MouseEvent('mousemove', {
-    clientX: touch.clientX,
-    clientY: touch.clientY
-  });
-  canvas.dispatchEvent(mouseEvent);
+  const pos = getCanvasPos(e);
+  ctx.lineTo(pos.x, pos.y);
+  ctx.stroke();
+}
+
+function handleTouchEnd(e) {
+  e.preventDefault();
+  isDrawing = false;
+  ctx.closePath();
+  console.log('Touch end - desenho finalizado');
 }
 
 function limparAssinatura() {
-  if (!ctx || !canvas) return;
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (!ctx || !canvas) {
+    console.error('Canvas não inicializado');
+    return;
+  }
+  
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  console.log('Canvas limpo');
 }
 
 function salvarAssinatura() {
@@ -2437,25 +2517,47 @@ function salvarAssinatura() {
     return;
   }
   
-  // Verificar se tem assinatura (checar se não está vazio)
-  const pixelBuffer = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-  const hasSignature = pixelBuffer.some((pixel, index) => index % 4 !== 3 && pixel !== 0);
+  // Verificar se tem assinatura (checar pixels não brancos)
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const pixels = imageData.data;
+  let hasDrawing = false;
   
-  if (!hasSignature) {
+  // Verificar a cada 4 pixels (RGBA) se há algo desenhado
+  for (let i = 3; i < pixels.length; i += 4) {
+    if (pixels[i] > 0) { // Canal alpha
+      // Verificar se não é branco
+      const r = pixels[i-3];
+      const g = pixels[i-2];
+      const b = pixels[i-1];
+      if (r < 255 || g < 255 || b < 255) {
+        hasDrawing = true;
+        break;
+      }
+    }
+  }
+  
+  if (!hasDrawing) {
     showToast('❌ Faça a assinatura primeiro!', 'error');
     return;
   }
   
-  assinaturas[currentEventoId] = canvas.toDataURL('image/png');
-  salvarDados();
-  
-  // Atualizar preview do contrato com a assinatura
-  const assinaturaDiv = document.getElementById('assinaturaContratado');
-  if (assinaturaDiv) {
-    assinaturaDiv.innerHTML = `<img src="${assinaturas[currentEventoId]}" style="max-height: 55px; max-width: 90%;">`;
+  // Salvar assinatura
+  try {
+    assinaturas[currentEventoId] = canvas.toDataURL('image/png');
+    salvarDados();
+    
+    // Atualizar preview no contrato
+    const assinaturaDiv = document.getElementById('assinaturaContratado');
+    if (assinaturaDiv) {
+      assinaturaDiv.innerHTML = `<img src="${assinaturas[currentEventoId]}" style="max-height: 75px; max-width: 90%;">`;
+    }
+    
+    showToast('✅ Assinatura salva com sucesso!');
+    console.log('Assinatura salva para evento:', currentEventoId);
+  } catch (err) {
+    console.error('Erro ao salvar assinatura:', err);
+    showToast('❌ Erro ao salvar assinatura!', 'error');
   }
-  
-  showToast('✅ Assinatura salva com sucesso!');
 }
 
 // ==================== RECIBOS COM CONTROLE FINANCEIRO ====================
