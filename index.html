@@ -25,7 +25,7 @@
             width: 100%;
             background: #f0f2f5;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            overscroll-behavior: none; /* Previne pull-to-refresh indesejado */
+            overscroll-behavior: none;
         }
 
         .main-wrapper {
@@ -39,9 +39,9 @@
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
             padding: 15px 15px 200px 15px;
-            scrollbar-width: none; /* Firefox */
+            scrollbar-width: none;
         }
-        .scroll-area::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+        .scroll-area::-webkit-scrollbar { display: none; }
 
         .container { max-width: 500px; margin: auto; }
         
@@ -240,20 +240,18 @@
             to { opacity: 1; transform: scale(1); }
         }
         
+        /* CORREÇÃO: Estilo do input de preço formatado */
         #inputPrecoFinal { 
             font-size: 32px; 
             text-align: center; 
             border: 2px solid #2ecc71; 
             border-radius: 12px; 
             width: 100%; 
-            color: #2ecc71; 
+            color: #1e293b; 
             font-weight: bold; 
             margin-bottom: 20px; 
             padding: 10px;
-            -moz-appearance: textfield;
         }
-        #inputPrecoFinal::-webkit-outer-spin-button,
-        #inputPrecoFinal::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
         .btn-modal { 
             flex: 1; 
@@ -305,7 +303,6 @@
             opacity: 0.5;
         }
 
-        /* Toast notification */
         .toast {
             position: fixed;
             top: 20px;
@@ -419,7 +416,8 @@
             <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase;">Última vez</div>
             <div style="font-size: 1.3rem; color: #475569; font-weight: bold;" id="val-anterior">R$ 0,00</div>
         </div>
-        <input type="number" id="inputPrecoFinal" inputmode="decimal" placeholder="0,00" step="0.01" min="0" onfocus="this.select()" aria-label="Preço do item">
+        <!-- CORREÇÃO: Input type text para máscara funcionar -->
+        <input type="text" id="inputPrecoFinal" inputmode="decimal" placeholder="0,00" onfocus="this.select()" oninput="formatarMoeda(this)" aria-label="Preço do item">
         <div style="display: flex; gap: 10px;">
             <button class="btn-modal btn-cancel" onclick="fecharModal()">VOLTAR</button>
             <button class="btn-modal btn-confirm" onclick="confirmarPreco()">SALVAR</button>
@@ -446,7 +444,6 @@
         carregarDadosCompartilhados();
         renderizar();
         
-        // Sincronização entre abas
         window.addEventListener('storage', (e) => {
             if (e.key === STORAGE_KEY) {
                 itens = JSON.parse(e.newValue) || [];
@@ -455,17 +452,36 @@
         });
     });
 
-    // Event Listeners
+    // CORREÇÃO: Função de máscara de moeda que converte 599 → 5,99
+    function formatarMoeda(input) {
+        // Remove tudo que não é número
+        let valor = input.value.replace(/\D/g, '');
+        
+        // Se não tem nada, limpa
+        if (valor === '') {
+            input.value = '';
+            return;
+        }
+        
+        // Converte para centavos (divide por 100 para ter os centavos)
+        // Ex: 599 → 5.99
+        let numero = parseInt(valor, 10) / 100;
+        
+        // Formata no padrão brasileiro
+        input.value = numero.toLocaleString('pt-BR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+
+    // CORREÇÃO: Evento keydown para Enter funcionar corretamente
     document.getElementById('inputPrecoFinal').addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') confirmarPreco();
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            confirmarPreco();
+        }
     });
 
-    document.getElementById('inputPrecoFinal').addEventListener('input', (e) => {
-        // Permite apenas números e vírgula/ponto
-        e.target.value = e.target.value.replace(/[^0-9.,]/g, '');
-    });
-
-    // Funções principais
     function classificarAuto() {
         const t = document.getElementById('nomeProd').value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
         const s = document.getElementById('catProd');
@@ -494,7 +510,6 @@
             return;
         }
 
-        // Verifica duplicados não comprados
         const existente = itens.find(i => i.nome.toLowerCase() === nome.toLowerCase() && !i.comprado);
         if (existente) {
             if (confirm('Este item já existe na lista. Deseja aumentar a quantidade?')) {
@@ -540,9 +555,16 @@
             boxHistorico.style.display = 'none';
         }
 
-        // Se já tem preço, mostra para edição
         const inputPreco = document.getElementById('inputPrecoFinal');
-        inputPreco.value = item.preco > 0 ? item.preco.toFixed(2).replace('.', ',') : '';
+        // CORREÇÃO: Formata o preço existente se houver
+        if (item.preco > 0) {
+            inputPreco.value = item.preco.toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        } else {
+            inputPreco.value = '';
+        }
         
         document.getElementById('modal-preco').style.display = 'flex';
         setTimeout(() => inputPreco.focus(), 100);
@@ -550,8 +572,13 @@
 
     function confirmarPreco() {
         const campo = document.getElementById('inputPrecoFinal');
-        let valorStr = campo.value.replace(',', '.');
-        let v = parseFloat(valorStr) || 0;
+        // CORREÇÃO: Pega o valor formatado e converte de volta para número
+        let valorStr = campo.value;
+        
+        // Remove pontos de milhar e troca vírgula por ponto
+        // Ex: "1.234,56" → "1234.56" ou "5,99" → "5.99"
+        let valorLimpo = valorStr.replace(/\./g, '').replace(',', '.');
+        let v = parseFloat(valorLimpo) || 0;
 
         if (itemEmEdicao) {
             const item = itens.find(i => i.id === itemEmEdicao);
@@ -603,10 +630,8 @@
         const pendentes = itens.filter(i => !i.comprado);
         const comprados = itens.filter(i => i.comprado);
         
-        // Mostra/esconde empty state
         emptyState.style.display = itens.length === 0 ? 'block' : 'none';
         
-        // Renderiza pendentes por categoria
         cats.forEach(c => {
             const filt = pendentes.filter(i => i.cat === c.id).sort((a,b) => a.nome.localeCompare(b.nome));
             if (filt.length > 0) {
@@ -623,10 +648,8 @@
             }
         });
 
-        // Renderiza comprados
         if (comprados.length > 0) {
             areaConcluidos.style.display = 'block';
-            // Ordena por mais recente primeiro
             comprados.sort((a, b) => new Date(b.dataCompra || 0) - new Date(a.dataCompra || 0));
             
             comprados.forEach(item => {
@@ -635,7 +658,7 @@
                 cBox.innerHTML += `<div class="item-linha" style="opacity:0.7; background: #f8fafc;">
                     <div style="flex:1; text-align: left;">
                         <div style="font-weight: 500; color: #334155;">${item.qtd}x ${item.nome}</div>
-                        ${item.preco > 0 ? `<div class="item-preco">R$ ${item.preco.toFixed(2)} cada = R$ ${subtotal.toFixed(2)}</div>` : ''}
+                        ${item.preco > 0 ? `<div class="item-preco">R$ ${item.preco.toFixed(2).replace('.', ',')} cada = R$ ${subtotal.toFixed(2).replace('.', ',')}</div>` : ''}
                     </div>
                     <button class="btn-del" style="background:none; padding: 8px;" onclick="reverter(${item.id})" aria-label="Desfazer compra">🔄</button>
                 </div>`;
@@ -644,7 +667,6 @@
             areaConcluidos.style.display = 'none';
         }
         
-        // Atualiza totais
         document.getElementById('valor-total').innerText = soma.toFixed(2).replace('.', ',');
         const nP = parseInt(document.getElementById('numPessoas').value) || 1;
         document.getElementById('valor-pessoa').innerText = (soma / nP).toFixed(2).replace('.', ',');
@@ -740,7 +762,6 @@
     }
 
     function gerarURLCompartilhamento() {
-        // Comprime dados para URL mais curta
         const dadosCompartilhar = itens.map(i => ({
             n: i.nome,
             c: i.cat,
@@ -766,7 +787,6 @@
             
             let adicionados = 0;
             importados.forEach(item => {
-                // Mapeia dados compactos de volta
                 const novoItem = {
                     id: Date.now() + Math.random(),
                     nome: item.n || 'Item',
@@ -777,7 +797,6 @@
                     dataCriacao: new Date().toISOString()
                 };
                 
-                // Evita duplicatas exatas
                 const existe = itens.some(i => 
                     i.nome === novoItem.nome && 
                     i.cat === novoItem.cat && 
@@ -795,7 +814,6 @@
                 showToast(`${adicionados} item(s) importado(s)!`);
             }
             
-            // Limpa URL sem recarregar
             window.history.replaceState({}, '', window.location.pathname);
         } catch (e) {
             console.error('Erro ao importar:', e);
@@ -819,14 +837,14 @@
             texto += '\n*No carrinho:*\n';
             comprados.forEach(i => {
                 texto += `✓ ${i.qtd}x ${i.nome}`;
-                if (i.preco > 0) texto += ` (R$${i.preco})`;
+                if (i.preco > 0) texto += ` (R$${i.preco.toFixed(2).replace('.', ',')})`;
                 texto += '\n';
             });
         }
         
         const total = comprados.reduce((s, i) => s + (i.preco * i.qtd), 0);
         if (total > 0) {
-            texto += `\n*Total: R$ ${total.toFixed(2)}*`;
+            texto += `\n*Total: R$ ${total.toFixed(2).replace('.', ',')}*`;
         }
         
         return texto;
@@ -842,7 +860,6 @@
         }, 2500);
     }
 
-    // Previne zoom em inputs no iOS
     document.addEventListener('gesturestart', (e) => e.preventDefault());
 </script>
 </body>
