@@ -2,7 +2,7 @@
   "name": "Lista Familiar Pro",
   "short_name": "Lista Pro",
   "description": "Sua lista de compras inteligente e offline.",
-  "start_url": "./lista_familiar_pro.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#1e293b",
   "theme_color": "#1e293b",
